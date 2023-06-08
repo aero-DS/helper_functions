@@ -19,24 +19,25 @@ class DfSetup(HandleFile):
        self.encod_config()
 
     def encod_config(self):
-        with open(os.listdir()[super.data_ind()[0]]) as tf:
+        with open(os.listdir()[HandleFile.train_ind]) as tf:
             print(tf)
-        with open(os.listdir()[super.data_ind()[1]]) as tsf:
+        with open(os.listdir()[HandleFile.test_ind]) as tsf:
             print(tsf)
 
     @staticmethod
     def set_train_df():
-        if os.listdir()[HandleFile.data_ind()[0]] == 'csv':
-            return (pd.read_csv(os.listdir()[HandleFile.data_ind()[0]]))
-        else:
-            return (pd.read_excel(os.listdir()[HandleFile.data_ind()[0]]))
+        if os.listdir()[HandleFile.train_ind].endswith('.csv'):
+            return (pd.read_csv(os.listdir()[HandleFile.train_ind]))
+        
+        elif os.listdir()[HandleFile.train_ind].endswith('.xlsx'):
+            return (pd.read_excel(os.listdir()[HandleFile.train_ind]))
         
     @staticmethod
     def set_test_df():
-        if os.listdir()[HandleFile.data_ind()[1]] == 'csv':
-            return (pd.read_csv(os.listdir()[HandleFile.data_ind()[1]]))
-        else:
-            return(pd.read_excel(os.listdir()[HandleFile.data_ind()[1]]))
+        if os.listdir()[HandleFile.test_ind].endswith('.csv'):
+            return (pd.read_csv(os.listdir()[HandleFile.test_ind]))
+        elif os.listdir()[HandleFile.test_ind].endswith('.xlsx'):
+            return (pd.read_excel(os.listdir()[HandleFile.test_ind]))
     
 
 class BasicExploration:
@@ -49,7 +50,7 @@ class BasicExploration:
             test_df - Testing Dataset
 
         Outputs:
-            Returns the shaoes of the Training and Testing Datasets
+            Returns the shapes of the Training and Testing Datasets
         """
         print(f'The shape of the Training dataset is {train_df.shape}')
         print(f'The shape of the Predicting dataset is {test_df.shape}')

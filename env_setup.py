@@ -17,9 +17,10 @@ class Envsetup:
             ZN - Zindi
     '''
 
-    def __init__(self, site:str, custom_PS:str):
+    def __init__(self, site:str, custom_PS:str, zip_fold_pres:str):
         self.site = site
         self.custom_PS = custom_PS
+        self.zip_fold_pres = zip_fold_pres
         self.create_dir()
         self.copy_pathfinder()
         self.move_from_dwnload_fld()
@@ -44,13 +45,13 @@ class Envsetup:
                 par_dir = os.environ.get(site_dict[key])
 
         # Path
-        global path
-        path = os.path.join(par_dir, directory)
+        global path_dir
+        path_dir = os.path.join(par_dir, directory)
 
         # Dealing with the pre-existence of the directory
         try:
             # Create the Directory
-            os.mkdir(path)
+            os.mkdir(path_dir)
 
              # Print the Confirmation
             print(f'{directory} directory has been created!!')
@@ -60,10 +61,10 @@ class Envsetup:
 
     def copy_pathfinder(self):
         '''
-        This function copies the pathfinder.py file from the source path and pastes it to 
+        This function copies the pathfinder.py file from the source path and pastes it to directory
         '''
         try:
-            shutil.copy(os.environ.get('PathFinder'), path)
+            shutil.copy(os.environ.get('PathFinder'), path_dir)
             print('Path Finder file has been moved into the directory successfully!!')
         except:
             pass
@@ -76,39 +77,81 @@ class Envsetup:
         '''
         default_folder = os.environ.get('Download_Folder')
 
-        # Finding the zip folders
-        files = glob.glob(os.path.join(default_folder, "*.zip"))
-        
-        # Sort list of files based on last modification time in descending order
-        files_sorted = sorted(files,
-                            key=os.path.getmtime,
-                            reverse=True)
-        
-        # Global variable - path
-        shutil.move(files_sorted[0],path)
+        try:
 
-        #Confirmation
-        print('Downloaded Data Folder has been moved Successfully!!!')
+            if self.zip_fold_pres.lower() == 'n':
+                # Finding the .csv files
+                files = glob.glob(os.path.join(default_folder, "*.csv"))
+
+                # Sort list of files based on last modification time in descending order
+                files_sorted = sorted(files,
+                                key=os.path.getmtime,
+                                reverse=True)
+                
+                # Global variable - path
+                for file in files_sorted[:2]:
+                    shutil.move(file,path_dir)
+                
+                # Confirmation
+                print('Downloaded Data Folder has been moved Successfully!!!')
+
+            else:
+                # Finding the zip folders
+                files = glob.glob(os.path.join(default_folder, "*.zip"))
+
+                # Sort list of files based on last modification time in descending order
+                files_sorted = sorted(files,
+                                key=os.path.getmtime,
+                                reverse=True)
+                
+                # Global variable - path
+                shutil.move(files_sorted[0],path_dir)
+
+                # Confirmation
+                print('Downloaded Data Folder has been moved Successfully!!!')
+
+        except:
+            print('Files NOT found!!')
+
 
     def create_workbook(self):
         '''
         Creates a Jupyter notebook without having to know the specifics of the file format, JSON schema etc.
         '''
         try:
-            nb = nbf.v4.new_notebook() # Creates New Workbook
+            # Creating New Workbook
+            nb = nbf.v4.new_notebook()
 
-            text1 = """# Problem Statement \
+            # Entering the Problem Statement
+            text1 = """# Problem Statement\n
             %s
             """%(self.custom_PS)
 
+            # Running the PathFinder.py file
+            code1 = """import PathFinder as pf\n
+            pf.add_path()
+            """
 
-            nb['cells'] = [nbf.v4.new_markdown_cell(text1)]
+            # Adding a Markdown Cell to the created Notebook
+            nb['cells'].append(nbf.v4.new_markdown_cell(text1))
 
+            # Adding the Code Cell to the created Notebook
+            nb['cells'].append(nbf.v4.new_code_cell(code1))
+
+            # Finalizing the Schema
             nbf.write(nb, 'Workbook.ipynb')
 
+            # Confirming the Notebook Creation
+            print('Notebook has been created successfully!!')
+
+            # Moving the created notebook the directory created
+            shutil.move('Workbook.ipynb', path_dir)
+
         except:
-            print('IPYNB file was not created!')
+            print('IPYNB file was not created and moved to the working directory!!!')
+
 
 if __name__ == '__main__':
     Envsetup(site=input('Please Enter the Site MH/AV/ZN: '),
-                custom_PS=input('Please Enter the Case specic Problem Statement: ')) 
+             zip_fold_pres=input('Please Confirm the presence of zip folder or individual y/n: '),
+             custom_PS=input('Please Enter the Case specic Problem Statement: ')) 

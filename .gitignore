@@ -1,0 +1,8 @@
+# Checkpoints
+.vscode
+__pycache__
+
+# Virtual Environments
+
+## Supervised Classification
+superv_classification 

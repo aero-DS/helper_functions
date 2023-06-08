@@ -12,32 +12,110 @@ class HandleFile:
         3. Removes the unzipped folder.
         4. Provides the indices of the train and test data file to the child class.
     """
+    # Initial State
+    class_samp_file:str = None
+    train_ind:int = None
+    test_ind:int = None
+    sampl_sub_ind:int = None
     
-    def __init__(self, is_zip=True, samp_file_pres=False):
+    def __init__(self, is_zip:str):
+
+        # Resetting the Value of Class Variable
+        HandleFile.reset_sampl_file_pres_state()
+        HandleFile.reset_train_ind()
+        HandleFile.reset_test_ind()
+        HandleFile.reset_sampl_sub_ind()
 
         # Determine the existence of the zip file and unzip it
         self.is_zip = is_zip
-        if self.is_zip:
-            HandleFile.unzipFF()
-        print('--'*20)
+        if self.is_zip.lower()=='y':
+            self.unzipFF()
+            print('--'*20)
 
-        # Dealing with the Presence of Un-zipped Folder
-        unzip_fold = str(input('Un-zipped Folder Exists? (Y/N)')).lower()
-        print('--'*20)
-        if unzip_fold == 'y':
-            org = input("Please Enter the Path of the un-zipped folder: ")
-            HandleFile.zip_cont_mov(org)
-        print('--'*20)
+            # Dealing with the Presence of Un-zipped Folder
+            unzip_fold = str(input('Un-zipped Folder Exists? (Y/N)')).lower()
+            print('--'*20)
 
-        # Handling the Indices of the Data Files
-        self.samp_file_pres=samp_file_pres
-        if self.samp_file_pres:
-            HandleFile.data_ind(samp_fil_ind=self.samp_file_pres)
+            if unzip_fold == 'y':
+                org = input("Please Enter the Path of the un-zipped folder: ")
+                self.zip_cont_mov(org)
+                print('--'*20)
+
+            else:
+                pass
+
         else:
-             HandleFile.data_ind(samp_fil_ind=self.samp_file_pres)
+            pass
+        
+        # Handling the Indices of the Data Files
+        samp_file_pres:str = input('Is there a Submission File? Y/N: ').lower()
+        HandleFile.set_sampl_file_pres_state(value=samp_file_pres)
+        
+        self.data_ind()
 
-    @staticmethod
-    def unzipFF():
+    # Class Methods
+    ##1
+    @classmethod
+    def get_sampl_file_pres_state(cls):
+        return cls.class_samp_file
+    
+    ##2
+    @classmethod
+    def set_sampl_file_pres_state(cls,value:str):
+        cls.class_samp_file = value
+
+    ##3
+    @classmethod
+    def reset_sampl_file_pres_state(cls):
+        'To return the state of the variable into its original state'
+        cls.class_samp_file = None
+
+    ##4
+    @classmethod
+    def get_train_ind(cls):
+        return cls.train_ind
+    
+    ##5
+    @classmethod
+    def set_train_ind(cls, value:int):
+        cls.train_ind = value
+
+    ##6
+    @classmethod
+    def reset_train_ind(cls):
+        cls.train_ind = None
+
+    ##7
+    @classmethod
+    def get_test_ind(cls):
+        return cls.test_ind
+    
+    ##8
+    @classmethod
+    def set_test_ind(cls, value:int):
+        cls.test_ind = value
+
+    ##9
+    @classmethod
+    def reset_test_ind(cls):
+        cls.test_ind = None
+
+    ##10
+    @classmethod
+    def get_sampl_sub_ind(cls):
+        return cls.sampl_sub_ind
+    
+    ##11
+    @classmethod
+    def set_sampl_sub_ind(cls, value:int):
+        cls.sampl_sub_ind = value
+
+    ##12
+    @classmethod
+    def reset_sampl_sub_ind(cls):
+        cls.sampl_sub_ind = None
+
+    def unzipFF(self):
         ''' 
         Locates a File (w/ .zip extension) in the working directory. Unzips it, and the contents are then saved in the same directory.
         '''
@@ -52,8 +130,8 @@ class HandleFile:
                 z.extractall()
                 z.close()
 
-    @staticmethod
-    def zip_cont_mov(org, targ=os.getcwd(), del_dir=True):
+
+    def zip_cont_mov(self,org, targ=os.getcwd(), del_dir=True):
         '''
         Take out the files from the unzipped folder into the working directory and then delete the orgin folder
         '''
@@ -68,6 +146,7 @@ class HandleFile:
             shutil.rmtree(org)
             print('The un-zipped folder has been removed from the directory.')
 
+
     @staticmethod
     def chunk_decide(f_name:str):
         '''
@@ -79,10 +158,10 @@ class HandleFile:
             f_.close()
             print(f'Number of rows of the file: {x:_}')
 
-    @staticmethod
-    def data_ind(samp_fil_ind=False):
+
+    def data_ind(self):
         '''
-        Returns the indices of Train, Test data files.
+        Returns the indices of Train, Test and Submission data files.
         '''
 
         # Get the indices of data files based on their extensions
@@ -92,7 +171,7 @@ class HandleFile:
             if data_f:
                 indices.append(ind)
 
-        if samp_fil_ind == False:
+        if HandleFile.get_sampl_file_pres_state() == 'n':
             # From the previous indices, determine the specific indices of those files
             for ind in indices:
                 # Searching the files
@@ -103,6 +182,9 @@ class HandleFile:
                 test_file = re.findall(r'test'.lower(), (os.listdir()[ind]).lower()) # Test file Index
                 if test_file:
                     test_ind = ind
+
+            HandleFile.set_train_ind(value=train_ind)
+            HandleFile.set_test_ind(value=test_ind)
 
             return train_ind, test_ind
 
@@ -122,6 +204,12 @@ class HandleFile:
                 if samp_file:
                     samp_file = ind
 
+            HandleFile.set_train_ind(value=train_ind)
+            HandleFile.set_test_ind(value=test_ind)
+            HandleFile.set_sampl_sub_ind(value=samp_file)
+
             return train_ind, test_ind, samp_file
         
-    
+
+if __name__ == "__main__":
+    HandleFile(is_zip=input('Is there a Zipped Data Folder to be Un-Zipped? Y/N: '))
