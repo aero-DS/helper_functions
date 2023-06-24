@@ -34,7 +34,8 @@ class Envsetup:
         # Site Dictionary
         site_dict = {'MH':'MH_dir',
                      'AV':'AV_dir',
-                     'ZN':'ZN_dir'}
+                     'ZN':'ZN_dir',
+                     'KG':'KG_dir'}
 
         # Directory Name
         directory = str(input('Please Enter the name of the Folder to be created: '))
@@ -152,6 +153,6 @@ class Envsetup:
 
 
 if __name__ == '__main__':
-    Envsetup(site=input('Please Enter the Site MH/AV/ZN: '),
+    Envsetup(site=input('Please Enter the Site MH/AV/ZN/KG: '),
              zip_fold_pres=input('Please Confirm the presence of zip folder or individual y/n: '),
              custom_PS=input('Please Enter the Case specic Problem Statement: ')) 
