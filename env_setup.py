@@ -15,6 +15,7 @@ class Envsetup:
             MH - Machine Hack
             AV - Analytics Vidya
             ZN - Zindi
+            KG - Kaggle
     '''
 
     def __init__(self, site:str, custom_PS:str, zip_fold_pres:str):

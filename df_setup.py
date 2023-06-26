@@ -54,10 +54,6 @@ class BasicExploration:
         """
         print(f'The shape of the Training dataset is {train_df.shape}')
         print(f'The shape of the Predicting dataset is {test_df.shape}')
-
-    @staticmethod
-    def overview(df):
-        return df.info(), df.describe()
     
     @staticmethod
     def split_str(df, splt_crt:str, str_ind_int:int, len_req:str=False, maxsplit=-1):
