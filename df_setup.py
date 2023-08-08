@@ -27,7 +27,34 @@ class DfSetup(HandleFile):
     @staticmethod
     def set_train_df():
         if os.listdir()[HandleFile.train_ind].endswith('.csv'):
-            return (pd.read_csv(os.listdir()[HandleFile.train_ind]))
+            is_time_series = str(input('Are you dealing with a Time Series Data? Y/N: '))
+            chunking = str(input('Do you want to upload the data using chunking? Y/N: '))
+            
+            # Dealing with Chunking with Time Series
+            if is_time_series.lower() == 'y':
+
+                index_column = str(input('Please Enter the name of the column to be set as index: '))
+                date_column = str(input('Please Enter the name of the column containing the dates: '))
+
+                if chunking.lower() == 'n':
+                    return (pd.read_csv(os.listdir()[HandleFile.train_ind], index_col=index_column, parse_dates=date_column))
+                
+                else:
+                    chunk_size = int(input('Please Enter the desired chunk size: '))
+                    
+                    return (pd.read_csv(os.listdir()[HandleFile.train_ind], index_col=index_column, parse_dates=date_column, chunksize=chunk_size))
+
+            # Dealing with Chunking without Time-Series
+            else:
+                if chunking.lower() == 'y':
+
+                    chunk_size = int(input('Please Enter the desired chunk size: '))
+
+                    return (pd.read_csv(os.listdir()[HandleFile.train_ind], chunksize=chunk_size))
+                
+                # Just a Normal Dataset
+                else:
+                    return (pd.read_csv(os.listdir()[HandleFile.train_ind]))
         
         elif os.listdir()[HandleFile.train_ind].endswith('.xlsx'):
             return (pd.read_excel(os.listdir()[HandleFile.train_ind]))

@@ -129,6 +129,12 @@ class Envsetup:
             %s
             """%(self.custom_PS)
 
+            # Markdown #2
+            text2 = """## Helper Function Connection"""
+
+            # MArkdown #3
+            text3 = """# Libraries"""
+
             # Running the PathFinder.py file
             code1 = """import PathFinder as pf\n
             pf.add_path()
@@ -137,8 +143,14 @@ class Envsetup:
             # Adding a Markdown Cell to the created Notebook
             nb['cells'].append(nbf.v4.new_markdown_cell(text1))
 
+            # Adding another Markdown Cell to the created Notebook
+            nb['cells'].append(nbf.v4.new_markdown_cell(text2))
+
             # Adding the Code Cell to the created Notebook
             nb['cells'].append(nbf.v4.new_code_cell(code1))
+
+            # Adding another Markdown Cell to the created Notebook
+            nb['cells'].append(nbf.v4.new_markdown_cell(text3))
 
             # Finalizing the Schema
             nbf.write(nb, 'Workbook.ipynb')
