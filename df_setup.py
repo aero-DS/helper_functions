@@ -2,6 +2,7 @@
 import re
 import os
 import pandas as pd
+from collections import defaultdict as dd
 
 # Parent Class
 from initial import *
@@ -79,8 +80,8 @@ class BasicExploration:
         Outputs:
             Returns the shapes of the Training and Testing Datasets
         """
-        print(f'The shape of the Training dataset is {train_df.shape}')
-        print(f'The shape of the Predicting dataset is {test_df.shape}')
+        print(f'The shape of the Training dataset is: {train_df.shape}')
+        print(f'The shape of the Predicting dataset is: {test_df.shape}')
     
     @staticmethod
     def split_str(df, splt_crt:str, str_ind_int:int, len_req:str=False, maxsplit=-1):
@@ -111,4 +112,29 @@ class BasicExploration:
 
         return oldString
     
-    
+    @staticmethod
+    def dtype_categorize(df):
+        '''
+        Categorizes the columns on the basis of their dtypes.
+        '''
+        # Dictionary to hold Columns and their dtypes as key-value pair
+        col_dict = dict()
+
+        ## Update the above dictionary
+        for x in range(len(df.dtypes)):
+            col_dict.update({df.columns[x]:df.dtypes[x]})
+
+        # Grouping on the basis of dtypes
+        res = dict()
+
+        for i, v in col_dict.items():
+            res[v] = [i] if v not in res.keys() else res[v] + [i]
+
+        # Creating lists on the basis of the keys of res
+        lists = dd(list)
+        
+        for k_name in res.keys():
+            lists[k_name].extend(res.get(k_name))
+            yield lists[k_name]
+
+            
