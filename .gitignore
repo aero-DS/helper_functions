@@ -10,6 +10,9 @@ superv_classification
 ## Dealing with Text Data
 text_env
 
+## Dealing with Images
+deal_with_images
+
 ## Web Scraping
 web_scrapping
 

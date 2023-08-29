@@ -169,3 +169,36 @@ class DataWrangle:
                     print(f'Variables with Missing Values that are common to both:\n {com_vars}')
 
                     return train_df_miss_var_list, test_df_miss_var_list
+                
+
+    @staticmethod
+    def val_counts(df, pred_list):
+        '''
+        This function displays value counts for object type Predictors.
+        This function is run after the preddictors with missing values are dropped from the dataset.
+
+        Input:
+            df : DataFrame
+            pred_list : List containing predictors of object dtypes
+
+        * As the function returns a generator object, run the funciton with list
+        '''
+        for col in pred_list:
+            if col in df.columns:
+                yield df[col].value_counts()
+
+    
+    @staticmethod
+    def rep_obj_vals(df, pred_list, conv_dict):
+        """
+        This function replaces the object values with given values.
+
+        Input:
+            df : DataFrame
+            pred_list : List containing predictors of object dtypes (Generally)
+            conv_dict : Dictionary used to replace values
+
+        """
+        for col in pred_list:
+            if col in df.columns:
+                yield df[col].replace(conv_dict, inplace=True)

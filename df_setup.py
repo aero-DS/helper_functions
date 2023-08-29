@@ -51,7 +51,15 @@ class DfSetup(HandleFile):
 
                     chunk_size = int(input('Please Enter the desired chunk size: '))
 
-                    return (pd.read_csv(os.listdir()[HandleFile.train_ind], chunksize=chunk_size))
+                    result = []
+                    with pd.read_csv(os.listdir()[HandleFile.train_ind], chunksize=chunk_size) as reader:
+                        for chunk in reader:
+                            result.append(chunk)
+
+                    result = pd.concat(result)
+                    result_df = pd.DataFrame(result)
+
+                    return result_df
                 
                 # Just a Normal Dataset
                 else:
@@ -63,7 +71,32 @@ class DfSetup(HandleFile):
     @staticmethod
     def set_test_df():
         if os.listdir()[HandleFile.test_ind].endswith('.csv'):
-            return (pd.read_csv(os.listdir()[HandleFile.test_ind]))
+            
+            is_time_series = str(input('Are you dealing with a Time Series Data? Y/N: '))
+            chunking = str(input('Do you want to upload the data using chunking? Y/N: '))
+
+            # Normal Data
+            if is_time_series.lower() == 'n':
+                if chunking.lower() == 'y':
+                    chunk_size = int(input('Please Enter the desired chunk size: '))
+
+                    result = []
+                    with pd.read_csv(os.listdir()[HandleFile.test_ind], chunksize=chunk_size) as reader:
+                        for chunk in reader:
+                            result.append(chunk)
+
+                    result = pd.concat(result)
+                    result_df = pd.DataFrame(result)
+
+                    return result_df
+                
+                else:
+                    return (pd.read_csv(os.listdir()[HandleFile.test_ind]))
+                
+            # Time - Series Data
+            else:
+                ...
+            
         elif os.listdir()[HandleFile.test_ind].endswith('.xlsx'):
             return (pd.read_excel(os.listdir()[HandleFile.test_ind]))
     
@@ -82,6 +115,16 @@ class BasicExploration:
         """
         print(f'The shape of the Training dataset is: {train_df.shape}')
         print(f'The shape of the Predicting dataset is: {test_df.shape}')
+
+    @staticmethod
+    def col_discrp(train_df, test_df):
+        """
+        This function checks the presence of predictors that are NOT present in both datasets.
+
+        Output: Returns a list of non-common predictors.
+        """
+        return list(set.symmetric_difference(set(train_df.columns), set(test_df.columns)))
+
     
     @staticmethod
     def split_str(df, splt_crt:str, str_ind_int:int, len_req:str=False, maxsplit=-1):
@@ -116,6 +159,10 @@ class BasicExploration:
     def dtype_categorize(df):
         '''
         Categorizes the columns on the basis of their dtypes.
+
+        Output format:
+            object_dtype, integer_dtype, float_dtype
+            The objects are in a list format.
         '''
         # Dictionary to hold Columns and their dtypes as key-value pair
         col_dict = dict()
