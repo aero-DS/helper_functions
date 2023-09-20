@@ -99,7 +99,7 @@ class DfSetup(HandleFile):
             
         elif os.listdir()[HandleFile.test_ind].endswith('.xlsx'):
             return (pd.read_excel(os.listdir()[HandleFile.test_ind]))
-    
+
 
 class BasicExploration:
 

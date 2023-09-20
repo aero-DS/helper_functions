@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 from zipfile import ZipFile
+import sys
 
 class HandleFile:
     """
@@ -155,8 +156,11 @@ class HandleFile:
         with open(f_name) as f_:
             x = len(f_.readlines())-1 
             # 1 has been deducted from the length in order to account for the header
+            file_size = sys.getsizeof(f_)
             f_.close()
             print(f'Number of rows of the file: {x:_}')
+            print(f'Size of the File is: {file_size/1024} GB')
+            
 
 
     def data_ind(self):
