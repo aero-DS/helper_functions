@@ -133,7 +133,7 @@ class Envsetup:
             text2 = """## Helper Function Connection"""
 
             # MArkdown #3
-            text3 = """# Libraries"""
+            text3 = """# Imports"""
 
             # Running the PathFinder.py file
             code1 = """import PathFinder as pf\n
@@ -153,13 +153,13 @@ class Envsetup:
             nb['cells'].append(nbf.v4.new_markdown_cell(text3))
 
             # Finalizing the Schema
-            nbf.write(nb, 'Workbook.ipynb')
+            nbf.write(nb, 'Initial.ipynb')
 
             # Confirming the Notebook Creation
             print('Notebook has been created successfully!!')
 
             # Moving the created notebook the directory created
-            shutil.move('Workbook.ipynb', path_dir)
+            shutil.move('Initial.ipynb', path_dir)
 
         except:
             print('IPYNB file was not created and moved to the working directory!!!')

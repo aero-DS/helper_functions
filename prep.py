@@ -27,7 +27,7 @@ class DataVisualize:
         plt.ylabel(y_label_name)
         plt.show()
 
-class DataWrangle:
+class WrangleNaN:
     '''
     Class handles the following processes:
         1. Removes duplicated rows from the training data.
@@ -40,7 +40,40 @@ class DataWrangle:
         self.df1 = df1
         self.df2 = df2
         self.rem_dup_lw_var()
-        self.comm_nan_vars()
+        self.miss_vars()
+
+        # Conditions
+        if len(non_miss_var_list_df1) == len(self.df1) and len(non_miss_var_list_df2) == len(self.df2):
+            print('Congratulations!!! There are no Missing Values in BOTH the DataFrames')
+            print('--'*20)
+
+        else:
+            if len(miss_var_list_df1) == 0 and len(miss_var_list_df2) != 0:
+                print('The Train dataset DOES NOT contain any variables with Missing Variables')
+                print('The Test dataset DOES contain variables with Missing Variables')
+                print(f'Number of predictors with Missing Values in Test Dataset:\n {len(miss_var_list_df2)}')
+                print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df2}')
+
+            elif len(miss_var_list_df1) != 0 and len(miss_var_list_df2) == 0:
+                print('The Test dataset DOES NOT contain any variables with Missing Variables')
+                print('The Train dataset DOES contain variables with Missing Variables')
+                print(f'Number of predictors with Missing Values in Train Dataset:\n {len(miss_var_list_df1)}')
+                print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df1}')
+
+            else:
+                if self.check_miss_var_lists() == 1:
+                    print('Both the datasets hold COMMON variables with Missing Values')
+                    print(f'Number of common missing values variables: {len(self.check_comm_miss_vars())}')
+                    print(f'Variables with Missing Values that are common to both:\n {self.check_comm_miss_vars()}')
+
+                else:
+                    print('Both the datasets have different predictors with Missing Values')
+                    print(f'Number of predictors with Missing Values in Training Dataset:\n {len(miss_var_list_df1)}')
+                    print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df1}\n')
+                    print(f'Number of predictors with Missing Values in Training Dataset:\n {len(miss_var_list_df2)}')
+                    print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df2}\n')
+
+        
 
     def rem_dup_lw_var(self):
         '''
@@ -61,127 +94,103 @@ class DataWrangle:
         else:
             print('There are no Duplicated Rows in the dataset!')
 
-    @staticmethod
-    def miss_var_list(df):
+    def miss_vars(self):
         '''
         This function carries out the following tasks:
             1. Determines the predictors with missing values in the given dataframe.
             2. It also calculates the percentage of missing values in each predictor w.r.t. the length of the dataframe.
-        
-        df -> Input Dataframe
 
         Output -> Outputs a list containing the names of the variables with missing values.
         '''
-        # Empty lists and dictionary
-        miss_var_list = []
-        non_miss_var_list = []
-        global mv_dict
-        mv_dict = dict()
-
-        # Loop
-        for ind, row in enumerate(df.isnull().sum()):
+        # For DataFrame 1
+        global miss_var_list_df1, non_miss_var_list_df1, mv_dict_sorted_df1
+        miss_var_list_df1 = []
+        non_miss_var_list_df1 = []
+        mv_dict_df1 = dict()
+        
+        # For DataFrame 1
+        for ind, row in enumerate(self.df1.isnull().sum()):
             if row != 0:
-                miss_var_list.append(df.columns[ind])
-                mv_dict.update({df.columns[ind]: np.round((row / len(df)) * 100, 2)})
+                miss_var_list_df1.append(self.df1.columns[ind])
+                mv_dict_df1.update({self.df1.columns[ind]: np.round((row / len(self.df1)) * 100, 2)})
             else:
-                non_miss_var_list.append(df.columns[ind])
+                non_miss_var_list_df1.append(self.df1.columns[ind])
 
-        global mv_dict_sorted
-        mv_dict_sorted = sorted(mv_dict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
-
-        # Printing the List
-        if len(non_miss_var_list) == len(df):
-            print('Congratulations!!! There are no Missing Values in the DataFrame')
-            print('--'*20)
-
-        else:
-            return miss_var_list
+        ## Sorting the predictors on the basis of Missing value proportions
+        mv_dict_sorted_df1 = sorted(mv_dict_df1.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
         
-
-    def comm_nan_vars(self):
-        '''
-        This function carries out the following tasks:
-            1. Checks for presence of common variables with missing values in train and test dataframe.
-        '''
-        # Global Variables
-        global train_df_miss_var_list
-        global test_df_miss_var_list
+        # For DataFrame 2
+        global miss_var_list_df2, non_miss_var_list_df2, mv_dict_sorted_df2
+        miss_var_list_df2 = []
+        non_miss_var_list_df2 = []
+        mv_dict_df2 = dict()
         
-
-        # Conditions
-        if len(DataWrangle.miss_var_list(self.df1)) == 0 and len(DataWrangle.miss_var_list(self.df2)) == 0:
-            print('Congratulations!!!, There are no variables with missing values in both the datasets.')
-
-        else:
-
-            if len(DataWrangle.miss_var_list(self.df1)) == 0 and len(DataWrangle.miss_var_list(self.df2)) != 0:
-                print('The first dataset does not contain any variables with Missing Variables')
-                print('The second dataset DOES contain variables with Missing Variables')
-
-                DataWrangle.miss_var_list(self.df2)
-                test_df_miss_var_list = [keys for keys in mv_dict.keys()]
-                
-                print(f'Number of predictors with Missing Values in Test Dataset:\n {len(DataWrangle.miss_var_list(self.df2))}')
-                print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted}')
-
-                return test_df_miss_var_list
-            
-            elif len(DataWrangle.miss_var_list(self.df1)) != 0 and len(DataWrangle.miss_var_list(self.df2)) == 0:
-                print('The second dataset does not contain any variables with Missing Variables')
-                print('The first dataset DOES contain variables with Missing Variables')
-
-                DataWrangle.miss_var_list(self.df1)
-                train_df_miss_var_list = [keys for keys in mv_dict.keys()]
-                
-                print(f'Number of predictors with Missing Values in Test Dataset:\n {len(DataWrangle.miss_var_list(self.df1))}')
-                print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted}')
-
-                return train_df_miss_var_list
-            
+        # For DataFrame 2
+        for ind, row in enumerate(self.df2.isnull().sum()):
+            if row != 0:
+                miss_var_list_df2.append(self.df2.columns[ind])
+                mv_dict_df2.update({self.df2.columns[ind]: np.round((row / len(self.df2)) * 100, 2)})
             else:
-                if DataWrangle.miss_var_list(self.df1) == DataWrangle.miss_var_list(self.df2):
-                    print('Both the datasets hold COMMON variables with Missing Values')
-
-                    DataWrangle.miss_var_list(self.df1)
-                    train_df_miss_var_list = [keys for keys in mv_dict.keys()]
-                    
-                    # Need to sort out the sorted equivalent for this case
-
-                    return train_df_miss_var_list
-
-                elif DataWrangle.miss_var_list(self.df1) != DataWrangle.miss_var_list(self.df2):
-                    print('Both the datasets have different predictors with Missing Values')
-
-                    print(f'Number of predictors with Missing Values in Training Dataset:\n {len(DataWrangle.miss_var_list(self.df1))}')
-                    DataWrangle.miss_var_list(self.df1)
-                    train_df_miss_var_list = [keys for keys in mv_dict.keys()]
-                    
-                    print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted}\n')
-
-                    print(f'Number of predictors with Missing Values in Test Dataset:\n {len(DataWrangle.miss_var_list(self.df2))}')
-                    DataWrangle.miss_var_list(self.df2)
-                    test_df_miss_var_list = [keys for keys in mv_dict.keys()]
-                    
-                    print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted}\n')
-
-                    com_vars = set(train_df_miss_var_list).intersection(set(test_df_miss_var_list))
-                    print(f'Number of common missing values variables: {len(com_vars)}')
-                    print(f'Variables with Missing Values that are common to both:\n {com_vars}')
-
-                    return train_df_miss_var_list, test_df_miss_var_list
+                non_miss_var_list_df2.append(self.df2.columns[ind])
                 
+        ## Sorting the predictors on the basis of Missing value proportions
+        mv_dict_sorted_df2 = sorted(mv_dict_df2.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
+
+    def check_miss_var_lists(self): 
+        '''
+        Checks whether or not both the datasets contains the same predictors having the missing values.
+
+        Outputs:
+            0 : NOT same predictors with Missing variables
+            1 : Same predictors with Missing variables
+        '''
+        if miss_var_list_df1 == miss_var_list_df2:
+            return 1
+        else:
+            return 0
+        
+    def check_comm_miss_vars(self):
+        '''
+        Returns a list of Predictors with Missing Values common to both the datasets
+        '''
+        comm_vars = list(set(miss_var_list_df1).intersection(set(miss_var_list_df2)))
+        return comm_vars
+    
+    def miss_lists(self, df_req):
+        '''
+        Returns the list of missing variables from the mentioned DataFrames
+
+        # Inputs
+            df_req : Integer values that determines the DataFrame
+                0 - Only for Training Dataframe
+                1 - Only for Test Dataframe
+                2 - For both the Dataframes
+        '''
+        # Assertion
+        assert df_req in [0,1,2]
+
+        if df_req == 0:
+            return miss_var_list_df1
+        
+        elif df_req == 1:
+            return miss_var_list_df2
+        
+        else:
+            return miss_var_list_df1, miss_var_list_df2
+
+
 
     @staticmethod
     def val_counts(df, pred_list):
         '''
-        This function displays value counts for object type Predictors.
+        This function displays value counts for each variable in the pred_list.
         This function is run after the preddictors with missing values are dropped from the dataset.
 
         Input:
             df : DataFrame
             pred_list : List containing predictors of object dtypes
 
-        * As the function returns a generator object, run the funciton with list
+        * As the function returns a generator object, run the function with list
         '''
         for col in pred_list:
             if col in df.columns:
@@ -202,3 +211,73 @@ class DataWrangle:
         for col in pred_list:
             if col in df.columns:
                 yield df[col].replace(conv_dict, inplace=True)
+
+    @staticmethod
+    def split_str(df, splt_crt:str, str_ind_int:int, len_req:str=False, maxsplit=-1):
+        """
+        Splitting the strings in a given Dataframe Column with an optional length of those strings.
+
+        Inputs:
+            df - DataFrame Column
+            splt_crt - Splitting Criteria
+            splt_ind_int - The index of the splitted string that needs to be used
+            len_req - Length
+        """
+        if len_req==False:
+            split_string =  df.map(lambda x: x.split(splt_crt, maxsplit)[str_ind_int])
+            return split_string
+        else:
+            split_string_len =  df.map(lambda x: x.split(splt_crt, maxsplit)[str_ind_int]).map(lambda x: len(x))
+            return split_string_len
+        
+    
+    @staticmethod
+    def multiStringReplace(oldString, oldValueList, newValue):
+        '''
+        Replacing multiple strings to a single new string.
+        '''
+        for oldValue in oldValueList:
+            oldString = oldString.replace(oldValue, newValue)
+
+        return oldString
+    
+    @staticmethod
+    def dtype_categorize(df):
+        '''
+        Categorizes the columns on the basis of their dtypes.
+
+        Output format:
+            object_dtype, integer_dtype, float_dtype
+            The objects are in a list format.
+        '''
+        # Dictionary to hold Columns and their dtypes as key-value pair
+        col_dict = dict()
+
+        ## Update the above dictionary
+        for x in range(len(df.dtypes)):
+            col_dict.update({df.columns[x]:df.dtypes[x]})
+
+        # Grouping on the basis of dtypes
+        res = dict()
+
+        for i, v in col_dict.items():
+            res[v] = [i] if v not in res.keys() else res[v] + [i]
+
+        # Creating lists on the basis of the keys of res
+        lists = dd(list)
+        
+        for k_name in res.keys():
+            lists[k_name].extend(res.get(k_name))
+            yield lists[k_name]
+
+class VarExp:
+
+    def var_dump(self, *vars, f_name = 'var_dump.txt'):
+        '''
+        Dumps the given variables into a .txt file
+        '''
+        import pickle
+
+        with open(f_name, 'wb') as f:
+            pickle.dump(vars, f)
+            f.close() 

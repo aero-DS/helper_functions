@@ -122,66 +122,7 @@ class BasicExploration:
         This function checks the presence of predictors that are NOT present in both datasets.
 
         Output: Returns a list of non-common predictors.
+
+        * Dataset Validation of sorts
         """
-        return list(set.symmetric_difference(set(train_df.columns), set(test_df.columns)))
-
-    
-    @staticmethod
-    def split_str(df, splt_crt:str, str_ind_int:int, len_req:str=False, maxsplit=-1):
-        """
-        Splitting the strings in a given Dataframe Column with an optional length of those strings.
-
-        Inputs:
-            df - DataFrame Column
-            splt_crt - Splitting Criteria
-            splt_ind_int - The index of the splitted string that needs to be used
-            len_req - Length
-        """
-        if len_req==False:
-            split_string =  df.map(lambda x: x.split(splt_crt, maxsplit)[str_ind_int])
-            return split_string
-        else:
-            split_string_len =  df.map(lambda x: x.split(splt_crt, maxsplit)[str_ind_int]).map(lambda x: len(x))
-            return split_string_len
-        
-    
-    @staticmethod
-    def multiStringReplace(oldString, oldValueList, newValue):
-        '''
-        Replacing multiple strings to a single new string.
-        '''
-        for oldValue in oldValueList:
-            oldString = oldString.replace(oldValue, newValue)
-
-        return oldString
-    
-    @staticmethod
-    def dtype_categorize(df):
-        '''
-        Categorizes the columns on the basis of their dtypes.
-
-        Output format:
-            object_dtype, integer_dtype, float_dtype
-            The objects are in a list format.
-        '''
-        # Dictionary to hold Columns and their dtypes as key-value pair
-        col_dict = dict()
-
-        ## Update the above dictionary
-        for x in range(len(df.dtypes)):
-            col_dict.update({df.columns[x]:df.dtypes[x]})
-
-        # Grouping on the basis of dtypes
-        res = dict()
-
-        for i, v in col_dict.items():
-            res[v] = [i] if v not in res.keys() else res[v] + [i]
-
-        # Creating lists on the basis of the keys of res
-        lists = dd(list)
-        
-        for k_name in res.keys():
-            lists[k_name].extend(res.get(k_name))
-            yield lists[k_name]
-
-            
+        return list(set.symmetric_difference(set(train_df.columns), set(test_df.columns)))   
