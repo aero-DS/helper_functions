@@ -103,8 +103,24 @@ class DfSetup(HandleFile):
 
 class BasicExploration:
 
-    @staticmethod
-    def dfShape(train_df, test_df):
+    '''
+    This class performs the following tasks:
+        1. Returns the shape of the Train and Test Datasets.
+        2. Checks for the expected discrepancies.
+        3. Removes the duplicated rows and lowers the names of the predictors in both the datasets.
+    '''
+
+    def __init__(self, train_df, test_df):
+        self.df1 = train_df
+        self.df2 = test_df
+        self.dfShape()
+        if len(self.col_discrp()) == 1:
+            print('Discrepancy as expected')
+            self.rem_dup_lw_var()
+        else:
+            print('Unexpected Discrepancy. ')
+
+    def dfShape(self):
         """
         InputsHandleFile
             train_df - Training Dataset
@@ -113,11 +129,10 @@ class BasicExploration:
         Outputs:
             Returns the shapes of the Training and Testing Datasets
         """
-        print(f'The shape of the Training dataset is: {train_df.shape}')
-        print(f'The shape of the Predicting dataset is: {test_df.shape}')
+        print(f'The shape of the Training dataset is: {self.df1.shape}')
+        print(f'The shape of the Predicting dataset is: {self.df2.shape}')
 
-    @staticmethod
-    def col_discrp(train_df, test_df):
+    def col_discrp(self):
         """
         This function checks the presence of predictors that are NOT present in both datasets.
 
@@ -125,4 +140,55 @@ class BasicExploration:
 
         * Dataset Validation of sorts
         """
-        return list(set.symmetric_difference(set(train_df.columns), set(test_df.columns)))   
+        return list(set.symmetric_difference(set(self.df1.columns), set(self.df2.columns)))
+
+    def rem_dup_lw_var(self):
+        '''
+        This function carries out 2 tasks:
+            1. Lowers the variable names of the dataframes.
+            2. Removes the duplicated rows from the training dataset.
+        '''
+        # Variable Name Lowering
+        self.df1.columns = self.df1.columns.str.lower()
+        self.df2.columns = self.df2.columns.str.lower()
+
+        # To deal with duplicated rows
+        if self.df1.duplicated().sum() != 0:
+            print('Shape of the dataset before deleting the duplicated rows', self.df1.shape)
+            print('Number of duplicated rows in the dataset', self.df1.duplicated().sum())
+            self.df1 = self.df1.drop_duplicates(inplace=True)
+            print('Shape of the dataset after deleting the duplicated rows', self.df1.shape)
+        else:
+            print('There are no Duplicated Rows in the dataset!')
+
+    @staticmethod
+    def dtype_categorize(df):
+        '''
+        Categorizes the columns on the basis of their dtypes.
+
+        Output format:
+            ob_dtype, int_dtype, dt_dtype, flt_dtype
+            The objects are in a list format.
+        '''
+        # Imports
+        from collections import defaultdict as dd
+
+        # Dictionary to hold Columns and their dtypes as key-value pair
+        col_dict = dict()
+
+        ## Update the above dictionary
+        for x in range(len(df.dtypes)):
+            col_dict.update({df.columns[x]:df.dtypes[x]})
+
+        # Grouping on the basis of dtypes
+        res = dict()
+
+        for i, v in col_dict.items():
+            res[v] = [i] if v not in res.keys() else res[v] + [i]
+
+        # Creating lists on the basis of the keys of res
+        lists = dd(list)
+        
+        for k_name in res.keys():
+            lists[k_name].extend(res.get(k_name))
+            yield lists[k_name]

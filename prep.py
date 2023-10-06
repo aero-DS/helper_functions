@@ -1,15 +1,26 @@
 # Imports
-import matplotlib as plt
+import matplotlib.pyplot  as plt
 import numpy as np
 
 class DataVisualize:
     '''
     This class carries-out the following tasks:
         1. Visualize the Numeric Target Variable.
+
+    Legend:
+        1 - Constinuous Target Variable
+        2 - Classification Target Variable
     '''
-    
-    @staticmethod
-    def vis_tar_var(col):
+
+    def __init__(self, df, targ_var, targ_var_typ:int):
+        self.df = df
+        self.targ_var = targ_var
+        if targ_var_typ == 1:
+            self.vis_tar_var()
+        else:
+            print('Please Enter the Type of Target Variables')
+
+    def vis_tar_var(self):
         '''
         Outputs a line graph and a box-plot side-by-side for a numeric target variable
 
@@ -19,27 +30,51 @@ class DataVisualize:
         fig = plt.figure(figsize = (15,7))
         # For Box-Plot
         plt.subplot(1, 2, 1)
-        plt.boxplot(col)
+        plt.boxplot(self.df[self.targ_var])
         plt.ylabel(y_label_name)
         # For Line Graph
         plt.subplot(1, 2, 2)
-        plt.plot(col)
+        plt.plot(self.df[self.targ_var])
         plt.ylabel(y_label_name)
         plt.show()
+
+class TypeCast:
+    '''
+    This class converts the columns into appropriate data types
+
+    chngtyp:
+        d - Convert the Datatype into datetime
+    '''
+
+    def __init__(self, train_df, *col2chng, chngtyp, dformat = None):
+        self.d1 = train_df
+        self.colchng = col2chng
+        self.chngtyp = chngtyp
+        if self.chngtyp.lower() == 'd':
+            self.dformat = dformat
+            self.conv_2_dt()
+    
+    def conv_2_dt(self):
+        '''
+        Converts the object dtype into datetime
+        '''
+        # Library
+        from datetime import datetime
+
+        for col in self.colchng:
+            self.d1[col] = self.d1[col].map(lambda x: datetime.strptime(x, self.dformat))
+
 
 class WrangleNaN:
     '''
     Class handles the following processes:
-        1. Removes duplicated rows from the training data.
-        2. Lowers the variable names of both the datasets.
-        3. Return a list containing only the variables with missing values.
-        4. Return a dictionary with the name of the variable and the percentage of missing value in it.
+        1. Return a list containing only the variables with missing values.
+        2. Return a dictionary with the name of the variable and the percentage of missing value in it.
     '''
 
     def __init__(self, df1, df2):
         self.df1 = df1
         self.df2 = df2
-        self.rem_dup_lw_var()
         self.miss_vars()
 
         # Conditions
@@ -72,27 +107,6 @@ class WrangleNaN:
                     print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df1}\n')
                     print(f'Number of predictors with Missing Values in Training Dataset:\n {len(miss_var_list_df2)}')
                     print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df2}\n')
-
-        
-
-    def rem_dup_lw_var(self):
-        '''
-        This function carries out 2 tasks:
-            1. Lowers the variable names of the dataframes.
-            2. Removes the duplicated rows from the training dataset.
-        '''
-        # Variable Name Lowering
-        self.df1.columns = self.df1.columns.str.lower()
-        self.df2.columns = self.df2.columns.str.lower()
-
-        # To deal with duplicated rows
-        if self.df1.duplicated().sum() != 0:
-            print('Shape of the dataset before deleting the duplicated rows', self.df1.shape)
-            print('Number of duplicated rows in the dataset', self.df1.duplicated().sum())
-            self.df1 = self.df1.drop_duplicates(inplace=True)
-            print('Shape of the dataset after deleting the duplicated rows', self.df1.shape)
-        else:
-            print('There are no Duplicated Rows in the dataset!')
 
     def miss_vars(self):
         '''
@@ -162,7 +176,7 @@ class WrangleNaN:
 
         # Inputs
             df_req : Integer values that determines the DataFrame
-                0 - Only for Training Dataframe
+                0 - Only for Training Dataframe - Preferred for COMMON missing variables
                 1 - Only for Test Dataframe
                 2 - For both the Dataframes
         '''
@@ -178,6 +192,25 @@ class WrangleNaN:
         else:
             return miss_var_list_df1, miss_var_list_df2
 
+    def miss_var_prop(self):
+        '''
+        Returns the proportion of missing value predictors for a Training Dataset.
+
+        Output is a sorted form sorted form of the missing value proportion dictionary.
+        '''
+        return dict(mv_dict_sorted_df1)
+    
+    def miss_var_thresholding(self, thr_val:int):
+        '''
+        Drops the columns with missing variable proportions greater than the threshold value
+        '''
+        thr_miss_vars = []
+
+        for key in self.miss_var_prop.keys():
+            if self.miss_var_prop[key] <= thr_val:
+                thr_miss_vars.append(key)
+
+        return thr_miss_vars
 
 
     @staticmethod
@@ -241,34 +274,7 @@ class WrangleNaN:
 
         return oldString
     
-    @staticmethod
-    def dtype_categorize(df):
-        '''
-        Categorizes the columns on the basis of their dtypes.
-
-        Output format:
-            object_dtype, integer_dtype, float_dtype
-            The objects are in a list format.
-        '''
-        # Dictionary to hold Columns and their dtypes as key-value pair
-        col_dict = dict()
-
-        ## Update the above dictionary
-        for x in range(len(df.dtypes)):
-            col_dict.update({df.columns[x]:df.dtypes[x]})
-
-        # Grouping on the basis of dtypes
-        res = dict()
-
-        for i, v in col_dict.items():
-            res[v] = [i] if v not in res.keys() else res[v] + [i]
-
-        # Creating lists on the basis of the keys of res
-        lists = dd(list)
-        
-        for k_name in res.keys():
-            lists[k_name].extend(res.get(k_name))
-            yield lists[k_name]
+    
 
 class VarExp:
 
