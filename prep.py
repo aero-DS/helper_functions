@@ -46,9 +46,9 @@ class TypeCast:
         d - Convert the Datatype into datetime
     '''
 
-    def __init__(self, train_df, *col2chng, chngtyp, dformat = None):
-        self.d1 = train_df
-        self.colchng = col2chng
+    def __init__(self, df, col2chng, chngtyp, dformat = None):
+        self.d1 = df
+        self.col2chng = col2chng
         self.chngtyp = chngtyp
         if self.chngtyp.lower() == 'd':
             self.dformat = dformat
@@ -59,11 +59,10 @@ class TypeCast:
         Converts the object dtype into datetime
         '''
         # Library
-        from datetime import datetime
+        import pandas as pd
 
-        for col in self.colchng:
-            self.d1[col] = self.d1[col].map(lambda x: datetime.strptime(x, self.dformat))
-
+        for col in self.col2chng:
+            self.d1[col] = pd.to_datetime(self.d1[col], format=self.dformat)
 
 class WrangleNaN:
     '''
@@ -200,14 +199,14 @@ class WrangleNaN:
         '''
         return dict(mv_dict_sorted_df1)
     
-    def miss_var_thresholding(self, thr_val:int):
+    def miss_var_thresholding(self, miss_var_prop_dict, thr_val:int):
         '''
         Drops the columns with missing variable proportions greater than the threshold value
         '''
         thr_miss_vars = []
 
-        for key in self.miss_var_prop.keys():
-            if self.miss_var_prop[key] <= thr_val:
+        for key in miss_var_prop_dict.keys():
+            if miss_var_prop_dict[key] <= thr_val:
                 thr_miss_vars.append(key)
 
         return thr_miss_vars
@@ -277,13 +276,32 @@ class WrangleNaN:
     
 
 class VarExp:
-
-    def var_dump(self, *vars, f_name = 'var_dump.txt'):
-        '''
-        Dumps the given variables into a .txt file
-        '''
+    '''
+    This class performs the following tasks:
+        1. Makes a new directory.
+        2. Exports the variable associated with train dataframe
+        3. Dumps the variables for future uses
+    '''
+    
+    # Library Imports
+    import os
+    import pandas as pd
+    
+    def __init__(self, dir_path_name:str):
+        self.dir_path_name = dir_path_name
+        self.create_dir()
+        
+    def create_dir(self):
+        return os.mkdir(self.dir_path_name)
+    
+    def df_dump(self, par_df_name, cp_df_name:str):
+        path_dir = os.path.join(self.dir_path_name, cp_df_name)
+        return par_df_name.to_csv(path_dir, index=False)
+    
+    def var_dump(self, *vars, f_name = 'var_dump.pkl'):
         import pickle
-
-        with open(f_name, 'wb') as f:
+        
+        path_dir = os.path.join(self.dir_path_name, f_name)
+        with open(path_dir, 'wb') as f:
             pickle.dump(vars, f)
-            f.close() 
+            f.close()

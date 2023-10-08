@@ -140,7 +140,7 @@ class BasicExploration:
 
         * Dataset Validation of sorts
         """
-        return list(set.symmetric_difference(set(self.df1.columns), set(self.df2.columns)))
+        return list(set(self.df1.columns).symmetric_difference(set(self.df2.columns)))
 
     def rem_dup_lw_var(self):
         '''
