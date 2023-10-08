@@ -283,22 +283,37 @@ class VarExp:
         3. Dumps the variables for future uses
     '''
     
-    # Library Imports
-    import os
-    import pandas as pd
-    
     def __init__(self, dir_path_name:str):
         self.dir_path_name = dir_path_name
         self.create_dir()
         
     def create_dir(self):
-        return os.mkdir(self.dir_path_name)
-    
-    def df_dump(self, par_df_name, cp_df_name:str):
-        path_dir = os.path.join(self.dir_path_name, cp_df_name)
-        return par_df_name.to_csv(path_dir, index=False)
+        '''
+        Creates a new directory with the given name
+        '''
+        # Import
+        import os
+
+        if os.path.exists(os.path.join(os.path.join(os.getcwd(), self.dir_path_name))):
+            print('Directory with the same name already exists.')
+            rem_cnf = str(input('Do you want to choose a another name for the directory? (y/n): '))
+
+            assert rem_cnf.lower() in ['y','n'], 'Select properly.'
+
+            if rem_cnf.lower() == 'n':
+                os.rmdir()
+                return os.mkdir(self.dir_path_name)
+            else:
+                new_dir_name = str(input('Please enter a new name for the directory: '))
+                self.dir_path_name = new_dir_name
+                return os.mkdir(self.dir_path_name)
     
     def var_dump(self, *vars, f_name = 'var_dump.pkl'):
+        '''
+        Exports the variables onto a pickle file
+        '''
+        # Imports
+        import os
         import pickle
         
         path_dir = os.path.join(self.dir_path_name, f_name)
