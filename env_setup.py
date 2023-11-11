@@ -18,14 +18,15 @@ class Envsetup:
             KG - Kaggle
     '''
 
-    def __init__(self, site:str, custom_PS:str, zip_fold_pres:str):
+    def __init__(self, site:str, custom_PS:str, zip_fold_pres:str, custom_PM:str):
         self.site = site
         self.custom_PS = custom_PS
+        self.custom_PM = custom_PM
         self.zip_fold_pres = zip_fold_pres
         self.create_dir()
         self.copy_pathfinder()
         self.move_from_dwnload_fld()
-        self.create_workbook()
+        self.create_workbook_initial()
 
 
     def create_dir(self):
@@ -116,7 +117,7 @@ class Envsetup:
             print('Files NOT found!!')
 
 
-    def create_workbook(self):
+    def create_workbook_initial(self):
         '''
         Creates a Jupyter notebook without having to know the specifics of the file format, JSON schema etc.
         '''
@@ -126,19 +127,32 @@ class Envsetup:
 
             # Entering the Problem Statement
             text1 = """# Problem Statement\n
-            %s
-            """%(self.custom_PS)
+            %s\n%s
+            """%(self.custom_PS,self.custom_PM)
 
             # Markdown #2
-            text2 = """## Helper Function Connection"""
+            text2 = """### Helper Function Connection"""
 
-            # MArkdown #3
-            text3 = """# Imports"""
+            # Markdown #3
+            text3 = """# Data Import"""
+
+            # Markdown #4
+            text4 = """# Dataframe Set-Up"""
 
             # Running the PathFinder.py file
             code1 = """import PathFinder as pf\n
             pf.add_path()
             """
+
+            # Running the code bits
+            code2 = """from initial import *"""
+            code3 = """HandleFile(is_zip=)"""
+            code4 = """HandleFile.chunk_decide(f_name=)"""
+
+            code5 = """from data_collect import DfSetup as dfs"""
+            code6 = """dfs()"""
+            code7 = """# Train Dataset\n train_df=dfs.set_train_df()\n"""
+            code8 = """# Test Dataset\n test_df=dfs.set_test_df()\n"""
 
             # Adding a Markdown Cell to the created Notebook
             nb['cells'].append(nbf.v4.new_markdown_cell(text1))
@@ -151,6 +165,18 @@ class Envsetup:
 
             # Adding another Markdown Cell to the created Notebook
             nb['cells'].append(nbf.v4.new_markdown_cell(text3))
+
+            # Adding the code bits
+            nb['cells'].append(nbf.v4.new_code_cell(code2))
+            nb['cells'].append(nbf.v4.new_code_cell(code3))
+            nb['cells'].append(nbf.v4.new_code_cell(code4))
+            nb['cells'].append(nbf.v4.new_code_cell(code5))
+            nb['cells'].append(nbf.v4.new_code_cell(code6))
+            nb['cells'].append(nbf.v4.new_code_cell(code7))
+            nb['cells'].append(nbf.v4.new_code_cell(code8))
+
+            # Adding Markdown Cell
+            nb['cells'].append(nbf.v4.new_markdown_cell(text4))
 
             # Finalizing the Schema
             nbf.write(nb, 'Initial.ipynb')
@@ -168,4 +194,5 @@ class Envsetup:
 if __name__ == '__main__':
     Envsetup(site=input('Please Enter the Site MH/AV/ZN/KG: '),
              zip_fold_pres=input('Please Confirm the presence of zip folder or individual y/n: '),
-             custom_PS=input('Please Enter the Case specic Problem Statement: ')) 
+             custom_PS=input('Please Enter the Case specific Problem Statement: '),
+             custom_PM=input('Please Enter the Case specific Performance Metric: ')) 

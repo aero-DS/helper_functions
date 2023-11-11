@@ -53,6 +53,11 @@ class HandleFile:
         HandleFile.set_sampl_file_pres_state(value=samp_file_pres)
         
         self.data_ind()
+        
+        # Determining the size of the Train Dataset for Upload decision
+        print('--'*20)
+        print(self.chunk_decide(f_name=os.listdir()[HandleFile.train_ind]))
+        print('--'*20)
 
     # Class Methods
     ##1
@@ -158,10 +163,9 @@ class HandleFile:
             # 1 has been deducted from the length in order to account for the header
             file_size = sys.getsizeof(f_)
             f_.close()
-            print(f'Number of rows of the file: {x:_}')
-            print(f'Size of the File is: {file_size/1024} GB')
             
-
+        print(f'Number of rows of the file: {x:_}')
+        print(f'Size of the File is: {file_size/1024} GB')
 
     def data_ind(self):
         '''
