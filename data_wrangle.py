@@ -432,78 +432,50 @@ class TypeCasting(DataFlt):
         self.chg2flt_list_ky = chg2flt_list_ky
         self.chg2cat_list_ky = chg2cat_list_ky
 
-    def __call__(self, tr_df = None, te_df = None):
+    def __call__(self, df):
         
-        self.df1 = tr_df
-        self.df2 = te_df
+        self.df = df
 
-        if self.df1:
-            
-            if self.chg2int_list:
-                self.chg2int(df=self.df1)
-            else:
-                pass
-
-            if self.chg2int_list:
-                self.chg2int(df=self.df1)
-            else:
-                pass
-
-            if self.chg2int_list:
-                self.chg2int(df=self.df1)
-            else:
-                pass
-
-            if self.chg2cat_list:
-                self.chg2cat(df=self.df1)
-            else:
-                pass
-
+        if self.chg2int_list!= None:
+            self.chg2int(df=self.df)
         else:
             pass
 
-        if self.df2:
-            
-            if self.chg2int_list:
-                self.chg2int(df=self.df2)
-            else:
-                pass
-
-            if self.chg2int_list:
-                self.chg2int(df=self.df2)
-            else:
-                pass
-
-            if self.chg2int_list:
-                self.chg2int(df=self.df2)
-            else:
-                pass
-
-            if self.chg2cat_list:
-                self.chg2cat(df=self.df2)
-            else:
-                pass
-
+        if self.chg2int_list!= None:
+            self.chg2int(df=self.df)
         else:
             pass
-    
+
+        if self.chg2int_list!= None:
+            self.chg2int(df=self.df)
+        else:
+            pass
+
+        if self.chg2cat_list!= None:
+            self.chg2cat(df=self.df)
+        else:
+            pass
+
     def chg2int(self,df):
         """
         For a list of predictors, this function changes the dtype to "int". Variation needs to be provided.
         """
-        return df[self.chg2int_list].astype(self.chg2int_list_ky)
+        df[self.chg2int_list] = df[self.chg2int_list].astype(self.chg2int_list_ky)
+        return df[self.chg2int_list]
     
     def chg2flt(self,df):
         """
         For a list of predictors, this function changes the dtype to "float". Variation needs to be provided.
         """
-        return df[self.chg2flt_list].astype(self.chg2flt_list_ky)
+        df[self.chg2flt_list] = df[self.chg2flt_list].astype(self.chg2flt_list_ky)
+        return df[self.chg2flt_list]
     
     def chg2cat(self,df):
         """
         For a list of predictors, this function changes the dtype to "Category". Variation needs to be provided.
         """
-        return df[self.chg2cat_list].astype(self.chg2cat_list_ky)
+        df[self.chg2cat_list] = df[self.chg2cat_list].astype(self.chg2cat_list_ky)
+        return df[self.chg2cat_list]
 
 class DataVisualize(TypeCasting):
     '''
@@ -511,14 +483,20 @@ class DataVisualize(TypeCasting):
     
     Legend:
         1 - Continuous Target Variable
-        2 - Classification Target Variable
+        2 - Categorical Target Variable
     '''
 
-    def __init__(self, df, targ_var, targ_var_typ:int):
+    def __init__(self, df, targ_var, ):
         self.df1 = df
         self.targ_var = targ_var
+
+    def __call__(self, targ_var_typ:int):
+    
         if targ_var_typ == 1:
             self.vis_tar_var()
+        
+        elif targ_var_typ == 2:
+            pass
         else:
             print('Please Enter the Type of Target Variables')
 
