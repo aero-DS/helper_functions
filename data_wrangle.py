@@ -141,6 +141,11 @@ class DataFlt(BasicExploration):
                     print(f'Number of predictors with Missing Values in Train Dataset:\n {len(miss_var_list_df1)}')
                     print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df1}')
 
+                    if self.targ_var in miss_var_list_df1:
+                        print('Target Variable contains MISSING Values.')
+                    else:
+                        print('Target Variable is FREE of Missing Values')
+
         elif dupl_val != 0 and na_val == 0:
             self.rem_dupl_var()
             print('Shape of the dataset after deleting the duplicated rows', self.df1.shape)
@@ -164,6 +169,11 @@ class DataFlt(BasicExploration):
                     print(f'Number of predictors with Missing Values in Train Dataset:\n {len(miss_var_list_df1)}')
                     print(f'Variables with Missing Values with their Percentage are:\n {mv_dict_sorted_df1}')
 
+                    if self.targ_var in miss_var_list_df1:
+                        print('Target Variable contains MISSING Values.')
+                    else:
+                        print('Target Variable is FREE of Missing Values')
+
         else:
             print("Training Dataset is free of Duplicate Rows and Missing Values.")
 
@@ -173,7 +183,7 @@ class DataFlt(BasicExploration):
             print(f'Value with the Majority Proportion in the Target Variable- {majority_Variable} : {maj_value}')
             print(f'Value with the Minority Proportion in the Target Variable- {minority_variable} : {min_value}')
 
-        else:
+        elif self.typ_analysis == 1:
             ...
 
     def rem_dupl_var(self):
@@ -320,16 +330,21 @@ class DataFlt(BasicExploration):
             lists[k_name].extend(res.get(k_name))
             yield lists[k_name]
 
+    def det_thr_preds(self):
+        '''
+         Determines number of unique values in a predictors.
+        '''
+        return dict(self.df1.nunique())
+
     def uniq_vals_num(self, thr:int=10):
         """
-        1. Determines number of unique values in a predictors.
-        2. Depending on the threshold value, returns a list containing names of predictors which can be converted into 'Category' dtype.
+        Depending on the threshold value, returns a list containing names of predictors which can be converted into 'Category' dtype.
 
         Inputs:
             thr: Number of nunique values required for the pred to be categorized as an ideal canidate
         """
         # Number of Unique Values Dictionary
-        num_unq = dict(self.df1.nunique())
+        num_unq = self.det_thr_preds()
 
         # Comparing the unique values with the Threshold Value
         thr_preds = list(filter(lambda x: num_unq[x] < thr,num_unq))
@@ -338,16 +353,18 @@ class DataFlt(BasicExploration):
     
     def re_organize_dlists(self, *org_dlists, cat_dtyp):
         """
-        Removes the misinterpreted variables from the given 
+        Removes the misinterpreted variables from the given.
+
+        The output needs to be converted into list
         """
         for dlist in org_dlists:
             com_var = list(set(dlist).intersection(set(cat_dtyp)))
             if len(com_var) != 0:
                 for ele in com_var:
                     dlist.remove(ele)
-                yield dlist
+                return dlist
             else:
-                yield dlist
+                return dlist
 
     @staticmethod
     def det_outliers_iqr(df,col):
@@ -416,7 +433,34 @@ class DataFlt(BasicExploration):
                 min_val = val_cnt_dict[val_ky]
                 min_ky = val_ky
 
-        return maj_ky,maj_val, min_ky,min_val 
+        return maj_ky,maj_val, min_ky,min_val
+    
+    def filt_dt_preds(self, lst_d):
+        '''
+        Returns a list of predictors which was earlier classified as Object dtype.
+        '''
+        import warnings
+        warnings.filterwarnings('ignore')
+        import pandas as pd
+
+        expt_dt_preds = []
+
+        for pred in lst_d:
+            try:
+                pd.to_datetime(self.df1[pred])
+                expt_dt_preds.append(pred)
+
+            except:
+                pass
+
+        if len(expt_dt_preds) != 0:
+            for pred in expt_dt_preds:
+                lst_d.remove(pred)
+
+        else:
+            pass
+
+        return expt_dt_preds, lst_d
 
 class TypeCasting(DataFlt):
 
@@ -486,7 +530,7 @@ class DataVisualize(TypeCasting):
         2 - Categorical Target Variable
     '''
 
-    def __init__(self, df, targ_var, ):
+    def __init__(self, df, targ_var):
         self.df1 = df
         self.targ_var = targ_var
 
@@ -535,7 +579,6 @@ class DataVisualize(TypeCasting):
         plt.ylabel(y_label_name)
         plt.show()
 
-    
 class VarExp:
     '''
     This class performs the following tasks:
