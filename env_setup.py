@@ -26,7 +26,7 @@ class Envsetup:
         self.create_dir()
         self.copy_pathfinder()
         self.move_from_dwnload_fld()
-        self.create_workbook_initial()
+        self.create_main_workbook()
 
 
     def create_dir(self):
@@ -117,7 +117,7 @@ class Envsetup:
             print('Files NOT found!!')
 
 
-    def create_workbook_initial(self):
+    def create_main_workbook(self):
         '''
         Creates a Jupyter notebook without having to know the specifics of the file format, JSON schema etc.
         '''

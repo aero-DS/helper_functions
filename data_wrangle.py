@@ -20,6 +20,7 @@ class BasicExploration:
 
     def __call__(self):
         self.dfShape()
+        
         if len(self.col_discrp()) == 1:
             self.stnd_col_names()
             print('---'*20)
@@ -186,11 +187,15 @@ class DataFlt(BasicExploration):
         elif self.typ_analysis == 1:
             ...
 
+    ######## Duplicated Rows Section #########
+
     def rem_dupl_var(self):
         """
         Removes the duplicated rows from the Training Dataset.
         """
         self.df1 = self.df1.drop_duplicates(inplace=True)
+
+    ######## Missing Values Detection Section ########
         
     def miss_vars(self):
         '''
@@ -286,16 +291,28 @@ class DataFlt(BasicExploration):
         
     def miss_var_thresholding(self, miss_var_prop_dict, thr_val:int):
         '''
-        Drops the columns with missing variable proportions greater than the threshold value
+        Returns the list of predictors hsving proportions of Missing values lower/equal to the given threshold value.
+        Also returns the list of predictors which have missing value proportions higher than the threshold value.
+        
+        Inputs:
+            miss_var_prop_dict: Dictionary containing the Predictor and their missing value proportion
+            thr_val: Threshold value
         '''
+        # List of predictors meeting the criteria
         thr_miss_vars = []
+        # List of predictors not meeting the criteria
+        miss_vars_thr_rej = []
 
         for key in miss_var_prop_dict.keys():
             if miss_var_prop_dict[key] <= thr_val:
                 thr_miss_vars.append(key)
+            else:
+                miss_vars_thr_rej.append(key)
 
-        return thr_miss_vars
+        return thr_miss_vars, miss_vars_thr_rej
     
+    ############# Dtype Realted Section ##############
+
     def dtype_categorize(self):
         '''
         Categorizes the columns on the basis of their dtypes.
@@ -365,6 +382,35 @@ class DataFlt(BasicExploration):
                 return dlist
             else:
                 return dlist
+            
+    def filt_dt_preds(self, lst_d):
+        '''
+        Returns a list of predictors which was earlier classified as Object dtype.
+        '''
+        import warnings
+        warnings.filterwarnings('ignore')
+        import pandas as pd
+
+        expt_dt_preds = []
+
+        for pred in lst_d:
+            try:
+                pd.to_datetime(self.df1[pred])
+                expt_dt_preds.append(pred)
+
+            except:
+                pass
+
+        if len(expt_dt_preds) != 0:
+            for pred in expt_dt_preds:
+                lst_d.remove(pred)
+
+        else:
+            pass
+
+        return expt_dt_preds, lst_d
+
+##########   ############
 
     @staticmethod
     def det_outliers_iqr(df,col):
@@ -433,34 +479,7 @@ class DataFlt(BasicExploration):
                 min_val = val_cnt_dict[val_ky]
                 min_ky = val_ky
 
-        return maj_ky,maj_val, min_ky,min_val
-    
-    def filt_dt_preds(self, lst_d):
-        '''
-        Returns a list of predictors which was earlier classified as Object dtype.
-        '''
-        import warnings
-        warnings.filterwarnings('ignore')
-        import pandas as pd
-
-        expt_dt_preds = []
-
-        for pred in lst_d:
-            try:
-                pd.to_datetime(self.df1[pred])
-                expt_dt_preds.append(pred)
-
-            except:
-                pass
-
-        if len(expt_dt_preds) != 0:
-            for pred in expt_dt_preds:
-                lst_d.remove(pred)
-
-        else:
-            pass
-
-        return expt_dt_preds, lst_d
+        return maj_ky,maj_val, min_ky,min_val    
 
 class TypeCasting(DataFlt):
 
