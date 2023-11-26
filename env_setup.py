@@ -145,6 +145,10 @@ class Envsetup:
             """
 
             # Running the code bits
+            code1_1 = """from pandas as pd\n
+            pd.set_option('display.max_columns', None)
+            """
+            
             code2 = """from initial import *"""
             code3 = """HandleFile(is_zip=)"""
             code4 = """HandleFile.chunk_decide(f_name=)"""
@@ -167,6 +171,7 @@ class Envsetup:
             nb['cells'].append(nbf.v4.new_markdown_cell(text3))
 
             # Adding the code bits
+            nb['cells'].append(nbf.v4.new_code_cell(code1_1))
             nb['cells'].append(nbf.v4.new_code_cell(code2))
             nb['cells'].append(nbf.v4.new_code_cell(code3))
             nb['cells'].append(nbf.v4.new_code_cell(code4))

@@ -36,6 +36,13 @@ class BasicExploration:
             else:
                 print(f'There is presence of {self.check_na()} predictors with missing values.')
                 print('---'*20)
+
+            if self.det_multirec_var != None:
+                print(f'There are {len(self.det_multirec_var())} multi-record predictors')
+                print('---'*20)
+            else:
+                print('There are NONE variables with Multiple Variable Records.')
+                print('---'*20)
         
         else:
             print('Unexpected Column Discrepancy!!')
@@ -97,6 +104,32 @@ class BasicExploration:
         self.df1.columns = self.df1.columns.str.lower()
         self.df2.columns = self.df2.columns.str.lower()
 
+    def det_multirec_var(self):
+        """
+        This function checks for the presence of Predictors having multiple values for a single record.
+
+        Considering:
+            1. Object dtypes Only.
+            2. Only 'space' as the splitting criteria between the values.
+        """
+        # Filtering for object dtype variables
+        col_names = [col for col in self.df1.columns.to_list() if self.df1[col].dtypes=='O']
+        
+        multi_rec_vars = []
+
+        for col in col_names:
+            try:
+                splt_rw_mx = max(self.df1[col].dropna().apply(lambda x: len(x.split(' '))))
+                if splt_rw_mx > 1:
+                    multi_rec_vars.append(col)
+            except:
+                continue
+
+        if len(multi_rec_vars) != 0:
+            return multi_rec_vars
+        else:
+            return None
+        
 class DataFlt(BasicExploration):
     """
     Filters the dataframe from the irregularities.
@@ -351,7 +384,19 @@ class DataFlt(BasicExploration):
         '''
          Determines number of unique values in a predictors.
         '''
-        return dict(self.df1.nunique())
+        # Dropping the MultiRecord variables from consideration
+        col_names = self.df1.columns.to_list()
+
+        if super().det_multirec_var() != None:
+            col_nt_consdr = super().det_multirec_var()
+            col_nt_consdr.append(self.targ_var)
+            for ele in col_nt_consdr:
+                col_names.remove(ele)
+            return dict(self.df1[col_names].nunique())
+        
+        else:
+            col_nt_consdr = self.targ_var
+            return dict(self.df1.nunique())
 
     def uniq_vals_num(self, thr:int=10):
         """
@@ -625,11 +670,11 @@ class VarExp:
 
             if rem_cnf.lower() == 'n':
                 os.rmdir()
-                return os.mkdir(self.dir_path_name)
+                return os.mkdir(os.path.join(os.path.join(os.getcwd(), self.dir_path_name)))
             else:
                 new_dir_name = str(input('Please enter a new name for the directory: '))
                 self.dir_path_name = new_dir_name
-                return os.mkdir(self.dir_path_name)
+                return os.mkdir(self.dir_path_nameos.path.join(os.path.join(os.getcwd(), self.dir_path_name)))
     
     def var_dump(self, *vars, f_name = 'var_dump.pkl'):
         '''
