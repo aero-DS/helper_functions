@@ -492,6 +492,8 @@ class DataFlt(BasicExploration):
 
         return outl_preds
     
+########## Target Variable Related ###########
+    
     def det_class_imbl(self):
         """
         Checks the column for class imbalance and Classifying the majority and minority classes in the Target Variable.
