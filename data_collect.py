@@ -25,6 +25,7 @@ class DfSetup(HandleFile):
         with open(os.listdir()[HandleFile.test_ind]) as tsf:
             print(tsf)
 
+    # REFACTOR FOR CHUNKING CASE
     @staticmethod
     def set_train_df():
         if os.listdir()[HandleFile.train_ind].endswith('.csv'):
@@ -51,15 +52,7 @@ class DfSetup(HandleFile):
 
                     chunk_size = int(input('Please Enter the desired chunk size: '))
 
-                    result = []
-                    with pd.read_csv(os.listdir()[HandleFile.train_ind], chunksize=chunk_size) as reader:
-                        for chunk in reader:
-                            result.append(chunk)
-
-                    result = pd.concat(result)
-                    result_df = pd.DataFrame(result)
-
-                    return result_df
+                    return pd.read_csv(os.listdir()[HandleFile.train_ind], chunksize=chunk_size)
                 
                 # Just a Normal Dataset
                 else:

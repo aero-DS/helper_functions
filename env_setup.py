@@ -72,6 +72,7 @@ class Envsetup:
         except:
             pass
 
+    # Refactor to include Non-Zipped Folder Access
     def move_from_dwnload_fld(self):
         '''
         Moves zipped/unzipped downloaded data folder from the site into the newly created directory.
@@ -83,33 +84,40 @@ class Envsetup:
         try:
 
             if self.zip_fold_pres.lower() == 'n':
-                # Finding the .csv files
-                files = glob.glob(os.path.join(default_folder, "*.csv"))
 
-                # Sort list of files based on last modification time in descending order
-                files_sorted = sorted(files,
-                                key=os.path.getmtime,
-                                reverse=True)
-                
-                # Global variable - path
-                for file in files_sorted[:2]:
-                    shutil.move(file,path_dir)
-                
-                # Confirmation
-                print('Downloaded Data Folder has been moved Successfully!!!')
+                extracted_folder_pres = str(input("Does Extracted Un-zipped folder present? y/n: "))
+                assert extracted_folder_pres == 'n' or extracted_folder_pres == 'y', "Please Select only from the Options."
+
+                if extracted_folder_pres.lower() == 'n':
+
+                    # Finding the .csv files
+                    files = glob.glob(os.path.join(default_folder, "*.csv"))
+                    # Sort list of files based on last modification time in descending order
+                    files_sorted = sorted(files,
+                                    key=os.path.getmtime,
+                                    reverse=True)
+                    # Global variable - path
+                    for file in files_sorted[:2]:
+                        shutil.move(file,path_dir)
+                    # Confirmation
+                    print('Downloaded Data Folder has been moved Successfully!!!')
+
+                else:
+
+                    # Looking for the files in the Download Directory
+
+                    ...
 
             else:
+
                 # Finding the zip folders
                 files = glob.glob(os.path.join(default_folder, "*.zip"))
-
                 # Sort list of files based on last modification time in descending order
                 files_sorted = sorted(files,
                                 key=os.path.getmtime,
                                 reverse=True)
-                
                 # Global variable - path
                 shutil.move(files_sorted[0],path_dir)
-
                 # Confirmation
                 print('Downloaded Data Folder has been moved Successfully!!!')
 
@@ -127,7 +135,8 @@ class Envsetup:
 
             # Entering the Problem Statement
             text1 = """# Problem Statement\n
-            %s\n%s
+            %s\n
+            Performance Metric: %s
             """%(self.custom_PS,self.custom_PM)
 
             # Markdown #2
@@ -145,12 +154,11 @@ class Envsetup:
             """
 
             # Running the code bits
-            code1_1 = """from pandas as pd\n
+            code1_1 = """import pandas as pd\n
             pd.set_option('display.max_columns', None)
             """
             
             code2 = """from initial import *"""
-            code3 = """HandleFile(is_zip=)"""
             code4 = """HandleFile.chunk_decide(f_name=)"""
 
             code5 = """from data_collect import DfSetup as dfs"""
@@ -173,7 +181,6 @@ class Envsetup:
             # Adding the code bits
             nb['cells'].append(nbf.v4.new_code_cell(code1_1))
             nb['cells'].append(nbf.v4.new_code_cell(code2))
-            nb['cells'].append(nbf.v4.new_code_cell(code3))
             nb['cells'].append(nbf.v4.new_code_cell(code4))
             nb['cells'].append(nbf.v4.new_code_cell(code5))
             nb['cells'].append(nbf.v4.new_code_cell(code6))
@@ -184,13 +191,13 @@ class Envsetup:
             nb['cells'].append(nbf.v4.new_markdown_cell(text4))
 
             # Finalizing the Schema
-            nbf.write(nb, 'Initial.ipynb')
+            nbf.write(nb, 'Main.ipynb')
 
             # Confirming the Notebook Creation
             print('Notebook has been created successfully!!')
 
             # Moving the created notebook the directory created
-            shutil.move('Initial.ipynb', path_dir)
+            shutil.move('Main.ipynb', path_dir)
 
         except:
             print('IPYNB file was not created and moved to the working directory!!!')
@@ -200,4 +207,4 @@ if __name__ == '__main__':
     Envsetup(site=input('Please Enter the Site MH/AV/ZN/KG: '),
              zip_fold_pres=input('Please Confirm the presence of zip folder or individual y/n: '),
              custom_PS=input('Please Enter the Case specific Problem Statement: '),
-             custom_PM=input('Please Enter the Case specific Performance Metric: ')) 
+             custom_PM=input('Please Enter the Case specific Performance Metric: '))

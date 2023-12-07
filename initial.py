@@ -56,7 +56,7 @@ class HandleFile:
         
         # Determining the size of the Train Dataset for Upload decision
         print('--'*20)
-        print(self.chunk_decide(f_name=os.listdir()[HandleFile.train_ind]))
+        print(HandleFile.chunk_decide(f_name=os.listdir()[HandleFile.train_ind]))
         print('--'*20)
 
     # Class Methods
@@ -158,7 +158,7 @@ class HandleFile:
         '''
         Helps in deciding whether or not to use chunking without opening the file
         '''
-        with open(f_name) as f_:
+        with open(f_name,'rb') as f_:
             x = len(f_.readlines())-1 
             # 1 has been deducted from the length in order to account for the header
             file_size = sys.getsizeof(f_)
@@ -166,6 +166,13 @@ class HandleFile:
             
         print(f'Number of rows of the file: {x:_}')
         print(f'Size of the File is: {file_size/1024} GB')
+
+    def print_ind_flname(self, ind_list):
+        """
+        Prints the Index and the corresponding file name in the directorry for a list of indices.
+        """
+        for indx in ind_list:
+            print(f'Index Number: {indx} - File Name: {os.listdir()[indx]}')
 
     def data_ind(self):
         '''
@@ -180,16 +187,26 @@ class HandleFile:
                 indices.append(ind)
 
         if HandleFile.get_sampl_file_pres_state() == 'n':
+
+            temp_tr_ind = [] # Temporary Training Index List
+
             # From the previous indices, determine the specific indices of those files
             for ind in indices:
                 # Searching the files
                 train_file = re.findall(r'train'.lower(), (os.listdir()[ind]).lower()) # Train File Index
                 if train_file:
-                    train_ind = ind
+                    temp_tr_ind.append(ind)
                 
                 test_file = re.findall(r'test'.lower(), (os.listdir()[ind]).lower()) # Test file Index
                 if test_file:
                     test_ind = ind
+
+            if len(temp_tr_ind) == 1:
+                train_ind = temp_tr_ind[0]
+            else:
+                print(self.print_ind_flname(ind_list=temp_tr_ind))
+                train_ind = int(input('Please Choose the Index from the above list: '))
+                
 
             HandleFile.set_train_ind(value=train_ind)
             HandleFile.set_test_ind(value=test_ind)
@@ -197,12 +214,15 @@ class HandleFile:
             return train_ind, test_ind
 
         else:
+
+            temp_tr_ind = [] # Temporary Training Index List
+
             # From the previous indices, determine the specific indices of those files
             for ind in indices:
                 # Searching the files
                 train_file = re.findall(r'train'.lower(), (os.listdir()[ind]).lower()) # Train File Index
                 if train_file:
-                    train_ind = ind
+                    temp_tr_ind.append(ind)
                 
                 test_file = re.findall(r'test'.lower(), (os.listdir()[ind]).lower()) # Test file Index
                 if test_file:
@@ -212,12 +232,14 @@ class HandleFile:
                 if samp_file:
                     samp_file = ind
 
+            if len(temp_tr_ind) == 1:
+                train_ind = temp_tr_ind[0]
+            else:
+                print(self.print_ind_flname(ind_list=temp_tr_ind))
+                train_ind = int(input('Please Choose the Index from the above list: '))
+
             HandleFile.set_train_ind(value=train_ind)
             HandleFile.set_test_ind(value=test_ind)
             HandleFile.set_sampl_sub_ind(value=samp_file)
 
             return train_ind, test_ind, samp_file
-        
-
-if __name__ == "__main__":
-    HandleFile(is_zip=input('Is there a Zipped Data Folder to be Un-Zipped? Y/N: '))
