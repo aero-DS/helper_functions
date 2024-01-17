@@ -2,6 +2,15 @@
 .vscode
 __pycache__
 
+# Path Directories
+dir_paths.py
+
+# Config Files
+config.ini
+
+## SQL
+sql_config.py
+
 # Virtual Environments
 
 ## Supervised Classification

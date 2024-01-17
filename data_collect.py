@@ -1,13 +1,15 @@
 # Imports
 import re
 import os
+from typing import Any
 import pandas as pd
 from collections import defaultdict as dd
+from sql_connection import CreateConnDb
 
 # Parent Class
 from initial import *
 
-class DfSetup(HandleFile):
+class DfSetup(CreateConnDb):
     
     """
     Class handles the following processes:
@@ -15,11 +17,24 @@ class DfSetup(HandleFile):
         2. Creates test and train dataframes.
         3. Provides the shape information and overview of the dataframes.
     """
-    
-    def __init__(self) :
-       self.encod_config()
+
+    def __init__(self, trad_upld=1):
+        """
+        Inputs:
+        trad_upld - To specify whether or not upload files using pandas or not.
+            1 : Use Pandas Method
+            0 : Use MySQL
+        """
+        if trad_upld == 1:
+            self.encod_config()
+
+        else:
+            super().__init__()
 
     def encod_config(self):
+        """
+        Provides the encoding information of the Train and Test Dataset
+        """
         with open(os.listdir()[HandleFile.train_ind]) as tf:
             print(tf)
         with open(os.listdir()[HandleFile.test_ind]) as tsf:
@@ -92,3 +107,4 @@ class DfSetup(HandleFile):
             
         elif os.listdir()[HandleFile.test_ind].endswith('.xlsx'):
             return (pd.read_excel(os.listdir()[HandleFile.test_ind]))
+        

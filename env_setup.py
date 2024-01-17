@@ -136,7 +136,7 @@ class Envsetup:
             # Entering the Problem Statement
             text1 = """# Problem Statement\n
             %s\n
-            Performance Metric: %s
+            *Performance Metric:* %s
             """%(self.custom_PS,self.custom_PM)
 
             # Markdown #2
