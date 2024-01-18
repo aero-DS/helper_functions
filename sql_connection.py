@@ -44,22 +44,6 @@ class CreateConnDb:
         config.read(os.path.join(parent_path,file_name))
         val = config[sec][ky]
         return val
-    
-    def files_head_dict(self):
-        """
-        Returns a dictionary containing the name of the name of the file with their respective headers.
-        """
-        file_headers_dict = dict()
-
-        for _, i in enumerate(os.listdir()):
-            data_f = re.findall(r'csv|xlsx', i)
-            if data_f:
-                with open(i,'r') as f:
-                    x = f.readlines()[0]
-                    file_headers_dict.update({i:x})
-                    f.close()
-
-        return file_headers_dict
 
     # New DataBase
     def create_nw_conn(self):
@@ -93,6 +77,59 @@ class CreateConnDb:
             f_query = query.format(db_name)
             mycursor.execute(f_query)
 
+    ## Creating Table(s)
+
+    def mult_tables(self):
+        """
+        For a given set of csv files in the working directory, creates a sql table for the csv file.
+        """
+        csv_names = []
+        for ind, i in enumerate(os.listdir()):
+            data_f = re.findall(r'csv|xlsx', i)
+            if data_f:
+                csv_names.append(i)
+
+        for csv_ in csv_names:
+            print(f"The Current File Name is: {csv_}")
+            csv_upl = int(input("Do you wish to upload the current csv file? 1/0: "))
+            
+            if csv_upl == 0:
+                continue
+            else:
+                tbl_name = str(input("Enter the desired Table Name: "))
+                self.create_sqltable_from_csv(csv_name=csv_, table_name=tbl_name)
+
+    
+    def create_sqltable_from_csv(self, csv_name, table_name):
+        """
+        Generates SQL queries to create tables for each of the csv file.
+        """
+        import pandas as pd
+
+        # Reading the First Row of the Dataframe
+        df = pd.read_csv(csv_name, nrows=1)
+
+        # SQL table creation creation statement
+        df_cols = df.columns
+        df_dtypes = df.dtypes
+        sql_cols = []
+
+        for col, data_dtype in zip(df_cols, df_dtypes):
+            if "int" in str(data_dtype):
+                sql_cols.append(f"{col} INT")
+            elif "float" in str(data_dtype):
+                sql_cols.append(f"{col} FLOAT")
+            elif "date" in str(data_dtype):
+                sql_cols.append(f"{col} DATETIME")
+            else:
+                sql_cols.append(f"{col} VARCHAR(255)")
+
+        # Create the SQL Table Statement
+        sql_tbl_statemnt = f"CREATE TABLE {table_name} ({', '.join(sql_cols)});"
+
+        # Execution
+        self.stat_query_exec(query=sql_tbl_statemnt)
+
     # Existing Database
     def create_exc_conn(self, exc_dbname):
         """
@@ -102,9 +139,18 @@ class CreateConnDb:
             host = self.host_name,
             user = self.user_name,
             password = os.environ.get('Root_password'),
-            database = self.exc_dbname)
+            database = exc_dbname)
     
-    # Dynamic Query
+    # Static Queries
+    def stat_query_exec(self, query):
+        """
+        Executes static sql statements (creating tables) for the newly created database.
+        """
+        with self.create_exc_conn(exc_dbname=self.exc_dbname) as conn:
+            mycursor = conn.cursor()
+            mycursor.execute(query)
+
+    # Dynamic Queries
     def dynamic_query(self):
         """
         This function provides dynamic query option for both new and existing databases.
@@ -113,7 +159,7 @@ class CreateConnDb:
 
         while nxt_query == 1:
 
-            with self.create_nw_conn() as conn:
+            with self.create_exc_conn(exc_dbname=self.exc_dbname) as conn:
                 mycursor = conn.cursor()
                 query = str(input("Input Query: "))
                 mycursor.execute(query)
