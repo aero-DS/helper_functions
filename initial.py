@@ -18,6 +18,7 @@ class HandleFile:
     train_ind:int = None
     test_ind:int = None
     sampl_sub_ind:int = None
+    other_indxs:int = None
     
     def __init__(self, is_zip:str):
 
@@ -26,6 +27,7 @@ class HandleFile:
         HandleFile.reset_train_ind()
         HandleFile.reset_test_ind()
         HandleFile.reset_sampl_sub_ind()
+        HandleFile.reset_other_indxs()
 
         # Determine the existence of the zip file and unzip it
         self.is_zip = is_zip
@@ -34,10 +36,10 @@ class HandleFile:
             print('--'*20)
 
             # Dealing with the Presence of Un-zipped Folder
-            unzip_fold = str(input('Un-zipped Folder Exists? (Y/N)')).lower()
+            unzip_fold = str(input('Has the contents of the unzipped folder extracted outside the folder? (Y/N)')).lower()
             print('--'*20)
 
-            if unzip_fold == 'y':
+            if unzip_fold == 'n':
                 org = input("Please Enter the Path of the un-zipped folder: ")
                 self.zip_cont_mov(org)
                 print('--'*20)
@@ -58,6 +60,14 @@ class HandleFile:
         print('--'*20)
         print(HandleFile.chunk_decide(f_name=os.listdir()[HandleFile.train_ind]))
         print('--'*20)
+
+        # Determining the need for row sizes for other csvs
+        othr_csv_rws = int(input("Do you wish to know about the number of rows for other csvs present in the directory? 1/0: "))
+        if othr_csv_rws == 1:
+            self.other_csv_indxs()
+            print('--'*20)
+            self.read_other_csvs(indx_lst=HandleFile.other_indxs)
+            print('--'*20)
 
     # Class Methods
     ##1
@@ -121,6 +131,22 @@ class HandleFile:
     def reset_sampl_sub_ind(cls):
         cls.sampl_sub_ind = None
 
+    ##13
+    @classmethod
+    def get_other_indxs(cls):
+        return cls.other_indxs
+
+    ##13
+    @classmethod
+    def set_other_indxs(cls, value):
+        cls.other_indxs = value
+
+    ##13
+    @classmethod
+    def reset_other_indxs(cls):
+        cls.other_indxs = None
+    
+
     def unzipFF(self):
         ''' 
         Locates a File (w/ .zip extension) in the working directory. Unzips it, and the contents are then saved in the same directory.
@@ -169,7 +195,7 @@ class HandleFile:
 
     def print_ind_flname(self, ind_list):
         """
-        Prints the Index and the corresponding file name in the directorry for a list of indices.
+        Prints the Index and the corresponding file name in the directory for a list of indices.
         """
         for indx in ind_list:
             print(f'Index Number: {indx} - File Name: {os.listdir()[indx]}')
@@ -228,7 +254,7 @@ class HandleFile:
                 if test_file:
                     test_ind = ind
 
-                samp_file = re.findall(r'test'.lower(), (os.listdir()[ind]).lower()) # Test file Index
+                samp_file = re.findall('.+sub.+'.lower(), (os.listdir()[ind]).lower()) # Sample file Index
                 if samp_file:
                     samp_file = ind
 
@@ -243,3 +269,32 @@ class HandleFile:
             HandleFile.set_sampl_sub_ind(value=samp_file)
 
             return train_ind, test_ind, samp_file
+        
+    def other_csv_indxs(self):
+        """
+        Returns a list containing the indices of csv files (other than train / test / sample submission files)
+        """
+        indices = []
+        for ind, i in enumerate(os.listdir()):
+            data_f = re.findall(r'csv|xlsx', i)
+            if data_f:
+                indices.append(ind)
+
+        othr_indxs = [indx for indx in indices if indx not in [HandleFile.get_test_ind(), HandleFile.get_train_ind(), HandleFile.get_sampl_sub_ind()]]
+
+        if len(othr_indxs) != 0:
+            HandleFile.set_other_indxs(value=othr_indxs)
+
+        return othr_indxs
+    
+    def read_other_csvs(self, indx_lst):
+        """
+        For the given list of indices, it returns the number of lines of each of the file.
+        """
+        for ind in indx_lst:
+            with open(os.listdir()[ind], 'rb') as c_:
+                x = len(c_.readlines())-1
+                c_.close()
+
+                print(f'{os.listdir()[ind]} : {x} rows.')
+                print('**'*10)

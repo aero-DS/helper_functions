@@ -5,16 +5,39 @@ import dir_paths as dp
 import re
 
 class CreateConnDb:
+
     """
     This class performs the following tasks:
         1. Creates a MySql connection
         2. Creates a Database.
         3. Gives the headers of the files with their respective names.
     """
+    # Initial State
+    new_session_sate:int = None
 
-    # Class Dictionary
+    # Class Methods
+    @classmethod
+    def get_new_session_state(cls):
+        """
+        Key:
+            0 : No new DataBase has been created. Using already existing DB from the beginning.
+            1 : New DataBase has been created and it will used for further operations. This created DB will be used as an       existing DB.
+        """
+        return cls.new_session_sate
+    
+    @classmethod
+    def set_new_session_state(cls, value:int):
+        cls.new_session_sate = value
+
+    @classmethod
+    def reset_new_session_state(cls):
+        "To return the variable into its original state."
+        cls.new_session_sate = None
 
     def __init__(self):
+
+        # Reset to Initial State
+        CreateConnDb.reset_new_session_state()
 
         sect = input("Enter the Concerned Section for the look-up: ")
 
@@ -22,16 +45,19 @@ class CreateConnDb:
         self.user_name = self.read_config(sec=sect, ky='user_name')
 
         db_creation = str(input('Do you want to create a New Database? Y/N: '))
+        assert db_creation.lower() == 'y' or db_creation.lower() == 'n', "Please Select Only From the Choices."
 
         if db_creation.lower() == 'y':
             print('List of Databases: ')
             self.check_dbnames()
             self.dbname = str(input("Enter the Name of the Database to be Created: "))
             self.create_db(db_name=self.dbname)
+            CreateConnDb.set_new_session_state(value=1)
 
         else:
             self.exc_dbname = str(input("Enter the Name of the Existing Database: "))
-            self.create_exc_conn(exc_dbname=self.exc_dbname)
+            self.create_exc_conn()
+            CreateConnDb.set_new_session_state(value=0)
 
     def read_config(self, sec, ky):
         """
@@ -53,7 +79,7 @@ class CreateConnDb:
         return mc.connect(
             host = self.host_name,
             user = self.user_name,
-            password = os.environ.get('Root_password'))
+            password = os.environ.get('sql_user_pwd')) #########
     
     def check_dbnames(self):
         """
@@ -98,11 +124,11 @@ class CreateConnDb:
             else:
                 tbl_name = str(input("Enter the desired Table Name: "))
                 self.create_sqltable_from_csv(csv_name=csv_, table_name=tbl_name)
-
+                
     
     def create_sqltable_from_csv(self, csv_name, table_name):
         """
-        Generates SQL queries to create tables for each of the csv file.
+        Generates SQL queries to create tables for each of the csv file and then uploads relevant csv files into those Tables.
         """
         import pandas as pd
 
@@ -126,27 +152,40 @@ class CreateConnDb:
 
         # Create the SQL Table Statement
         sql_tbl_statemnt = f"CREATE TABLE {table_name} ({', '.join(sql_cols)});"
-
-        # Execution
         self.stat_query_exec(query=sql_tbl_statemnt)
 
+        # Upload the Corresponding CSV File into the Table
+        sql_statement = f"LOAD DATA LOCAL INFILE '{csv_name}' INTO TABLE {table_name} FIELDS TERMINATED BY ',' IGNORE 1 ROWS;"
+        self.stat_query_exec(query=sql_statement)
+
+
     # Existing Database
-    def create_exc_conn(self, exc_dbname):
+    def create_exc_conn(self):
         """
         Creates a connection with an existing Database
         """
-        return mc.connect(
-            host = self.host_name,
-            user = self.user_name,
-            password = os.environ.get('Root_password'),
-            database = exc_dbname)
+        curr_state = CreateConnDb.get_new_session_state()
+
+        if curr_state == 0:
+            return mc.connect(
+                host = self.host_name,
+                user = self.user_name,
+                password = os.environ.get('sql_user_pwd'),
+                database = self.exc_dbname)
+        
+        elif curr_state == 1:
+            return mc.connect(
+                host = self.host_name,
+                user = self.user_name,
+                password = os.environ.get('sql_user_pwd'),
+                database = self.dbname)
     
     # Static Queries
     def stat_query_exec(self, query):
         """
         Executes static sql statements (creating tables) for the newly created database.
         """
-        with self.create_exc_conn(exc_dbname=self.exc_dbname) as conn:
+        with self.create_exc_conn() as conn:
             mycursor = conn.cursor()
             mycursor.execute(query)
 
@@ -159,7 +198,7 @@ class CreateConnDb:
 
         while nxt_query == 1:
 
-            with self.create_exc_conn(exc_dbname=self.exc_dbname) as conn:
+            with self.create_exc_conn() as conn:
                 mycursor = conn.cursor()
                 query = str(input("Input Query: "))
                 mycursor.execute(query)

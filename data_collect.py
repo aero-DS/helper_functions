@@ -1,11 +1,11 @@
 # Imports
 import re
 import os
-from typing import Any
 import pandas as pd
 from collections import defaultdict as dd
-from sql_connection import CreateConnDb
 
+# For MySQL connection
+from sql_connection import CreateConnDb
 # Parent Class
 from initial import *
 
@@ -22,7 +22,7 @@ class DfSetup(CreateConnDb):
         """
         Inputs:
         trad_upld - To specify whether or not upload files using pandas or not.
-            1 : Use Pandas Method
+            1 : Use Pandas Method / Upload
             0 : Use MySQL
         """
         if trad_upld == 1:
