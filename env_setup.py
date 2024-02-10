@@ -1,210 +1,180 @@
-import os
+# Libraries
+import configparser
 import shutil
-import glob
-import nbformat as nbf
+import dir_paths as dp
+import os
+import datetime
 
-class Envsetup:
-    '''
-    This class does the following things:
-        1. Create a new Directory for the project.
-        2. Copy pathfinder.py to the directory.
-        3. Move the data folder (zipped for now) into the newly created directory.
-        4. Create a .ipynb file.
+# Supplement Functions
+def decs_afterline():
+    print("--"*20)
 
-    Site Dictionary:
-            MH - Machine Hack
-            AV - Analytics Vidya
-            ZN - Zindi
-            KG - Kaggle
-    '''
+def read_config(sec, ky):
+    """
+    Extracts values for the given key from the relevant section.
+    """
+    parent_path = dp.config_path
+    file_name = 'config.ini'
+    
+    config = configparser.ConfigParser()
+    config.read(os.path.join(parent_path,file_name))
+    val = config[sec][ky]
+    return val
 
-    def __init__(self, site:str, custom_PS:str, zip_fold_pres:str, custom_PM:str):
-        self.site = site
-        self.custom_PS = custom_PS
-        self.custom_PM = custom_PM
-        self.zip_fold_pres = zip_fold_pres
-        self.create_dir()
-        self.copy_pathfinder()
-        self.move_from_dwnload_fld()
-        self.create_main_workbook()
+# Working Class
+class EnvSetup:
+    """
+    This class performs the following tasks:
+        1. Checks for the presence of downloaded data files for the project.
+        2. Creates the project specific directory.
+    """
 
+    def __init__(self):
+        EnvSetup.rst_data_fold()
+        EnvSetup.rst_proj_par_dir()
+        EnvSetup.rst_same_dir_name()
 
-    def create_dir(self):
-        '''
-        This function creates the directory for a given site
-        '''
-        # Site Dictionary
-        site_dict = {'MH':'MH_dir',
-                     'AV':'AV_dir',
-                     'ZN':'ZN_dir',
-                     'KG':'KG_dir'}
+    ## Class Variables
+    
+    # Template Dictionary
+    ipnyb_templt_dict = {
+        'CV' : 'Computer_Vision_template.ipynb',
+        'Reg' : 'Regression_template.ipynb'
+    }
+    
+    # Site Dictionary
+    site_dict = {
+        'MH' : 'Machine Hack',
+        'AV' : 'Analytics Vidya',
+        'ZN' : 'Zindi',
+        'KG' : 'Kaggle',
+    }
 
-        # Directory Name
-        directory = str(input('Please Enter the name of the Folder to be created: '))
+    # Default Directory for the project
+    proj_par_dir = None
 
-        # Parent Directory Path
-        for key in site_dict:
-            if key == self.site:
-                par_dir = os.environ.get(site_dict[key])
+    @classmethod
+    def rst_proj_par_dir(cls):
+        "Resets the value of the path for the Project Directory."
+        EnvSetup.proj_par_dir = None
 
-        # Path
-        global path_dir
-        path_dir = os.path.join(par_dir, directory)
+    @classmethod
+    def set_proj_par_dir(cls, val):
+        "Sets the value of the path for the Project Directory"
+        EnvSetup.proj_par_dir = val
 
-        # Dealing with the pre-existence of the directory
+    @classmethod
+    def get_proj_par_dir(cls):
+        "Returns the path set for the directory containing the Project Directory."
+        return cls.proj_par_dir
+
+    # Default Directory for Downloaded Data Files
+    data_fold = None
+
+    @classmethod
+    def rst_data_fold(cls):
+        "Resets the value of the path for the data files."
+        EnvSetup.data_fold = None
+
+    @classmethod
+    def set_data_fold(cls, val):
+        "Sets the value of the path for the data files"
+        EnvSetup.data_fold = val
+
+    @classmethod
+    def get_data_fold(cls):
+        "Returns the path set for the directory containing the data files."
+        return cls.data_fold
+    
+    # Same Name Directory Existence Confirmation (0:Unique Dir Name / 1:Duplicate Dir Name)
+    same_dir_name = None
+
+    @classmethod
+    def rst_same_dir_name(cls):
+        "Resets the value of the same_dir_name"
+        EnvSetup.same_dir_name = None
+
+    @classmethod
+    def set_same_dir_name(cls, val):
+        "Sets the value of the same_dir_name"
+        EnvSetup.same_dir_name = val
+
+    @classmethod
+    def get_same_dir_name(cls):
+        "Returns the value of same_dir_name."
+        return cls.same_dir_name
+
+    def conf_data_files(self, targ_fold, targ_dt):
+        """
+        This function performs the following tasks:
+            1. Checks the presence of the downloaded data files in the specified directory (based on the date the files were created.)
+            2. 
+        """
+        cr_files = []
+    
+        for file in os.listdir(targ_fold):
+            file_path = os.path.join(targ_fold, file)
+            create_time = os.path.getctime(file_path)
+            create_date = datetime.datetime.fromtimestamp(create_time).date()
+            if str(create_date) == targ_dt:
+                cr_files.append(file)
+            
+        return cr_files
+    
+    # HAVING ISSUES
+    def mov_data_files(self, files_in_dir):
+        """
+        Moves the downloaded data folder/files from the default foldrs into the project directory.
+        """
         try:
-            # Create the Directory
-            os.mkdir(path_dir)
+            print('Indices of the files in the directory are:\n')
+            for ind,f in enumerate(files_in_dir):
+                print(f'{ind} : {f}')
 
-             # Print the Confirmation
-            print(f'{directory} directory has been created!!')
+            moving_conf = int(input("Do you want to move all the listed files into the project directory? 1/0: "))
+            assert moving_conf == 1 or moving_conf == 0, "Please Enter only from the provided Options"
 
-        except FileExistsError:
-            print('Directory already exists with the given namme.')
-
-    def copy_pathfinder(self):
-        '''
-        This function copies the pathfinder.py file from the source path and pastes it to directory
-        '''
-        try:
-            shutil.copy(os.environ.get('PathFinder'), path_dir)
-            print('Path Finder file has been moved into the directory successfully!!')
-        except:
-            pass
-
-    # Refactor to include Non-Zipped Folder Access
-    def move_from_dwnload_fld(self):
-        '''
-        Moves zipped/unzipped downloaded data folder from the site into the newly created directory.
-
-        By default moves the last folder (the newest file/folder in the download directory.)
-        '''
-        default_folder = os.environ.get('Download_Folder')
-
-        try:
-
-            if self.zip_fold_pres.lower() == 'n':
-
-                extracted_folder_pres = str(input("Does Extracted Un-zipped folder present? y/n: "))
-                assert extracted_folder_pres == 'n' or extracted_folder_pres == 'y', "Please Select only from the Options."
-
-                if extracted_folder_pres.lower() == 'n':
-
-                    # Finding the .csv files
-                    files = glob.glob(os.path.join(default_folder, "*.csv"))
-                    # Sort list of files based on last modification time in descending order
-                    files_sorted = sorted(files,
-                                    key=os.path.getmtime,
-                                    reverse=True)
-                    # Global variable - path
-                    for file in files_sorted[:2]:
-                        shutil.move(file,path_dir)
-                    # Confirmation
-                    print('Downloaded Data Folder has been moved Successfully!!!')
-
-                else:
-
-                    # Looking for the files in the Download Directory
-
-                    ...
+            if moving_conf == 1:
+                for file in files_in_dir:
+                    file_src = os.path.join(EnvSetup.get_data_fold(),file)
+                    file_dst = os.path.join(EnvSetup.proj_par_dir(),file)
+                    shutil.move(file_src, EnvSetup.proj_par_dir())
 
             else:
-
-                # Finding the zip folders
-                files = glob.glob(os.path.join(default_folder, "*.zip"))
-                # Sort list of files based on last modification time in descending order
-                files_sorted = sorted(files,
-                                key=os.path.getmtime,
-                                reverse=True)
-                # Global variable - path
-                shutil.move(files_sorted[0],path_dir)
-                # Confirmation
-                print('Downloaded Data Folder has been moved Successfully!!!')
+                fil_indxs = list(input("Please Enter the Indices of the files you want moved.: "))
+                for ind in sorted(fil_indxs, reverse=True):
+                    file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
+                    file_dst = os.path.join(EnvSetup.proj_par_dir(),files_in_dir[ind])
+                    shutil.move(file_src, file_dst)
 
         except:
-            print('Files NOT found!!')
+            print(f'Data Folder/File have not been moved into the directory.')
 
 
-    def create_main_workbook(self):
+    def create_proj_dir(self, ky, dir_title):
         '''
-        Creates a Jupyter notebook without having to know the specifics of the file format, JSON schema etc.
+        This function creates the directory for a given site
+
+        Inputs:
+            ky: Key from the class dictionary site_dict
+            dir_title: Name of the folder contianing the relevant project
         '''
-        try:
-            # Creating New Workbook
-            nb = nbf.v4.new_notebook()
+        EnvSetup.set_proj_par_dir(val=os.path.join(read_config(sec='Site_Directories', ky=ky),dir_title))
 
-            # Entering the Problem Statement
-            text1 = """# Problem Statement\n
-            %s\n
-            *Performance Metric:* %s
-            """%(self.custom_PS,self.custom_PM)
+        os.mkdir(EnvSetup.get_proj_par_dir())
 
-            # Markdown #2
-            text2 = """### Helper Function Connection"""
+    def copy_helperFunc(self):
+        '''
+        This function copies the python file for the custom function into the project directory.
+        '''
+        src = read_config(sec='Base_Directories', ky='pathFinder')
+        dst = os.path.join(EnvSetup.get_proj_par_dir(),'PathFinder.py')
+        shutil.copy(src, dst)
 
-            # Markdown #3
-            text3 = """# Data Import"""
-
-            # Markdown #4
-            text4 = """# Dataframe Set-Up"""
-
-            # Running the PathFinder.py file
-            code1 = """import PathFinder as pf\n
-            pf.add_path()
-            """
-
-            # Running the code bits
-            code1_1 = """import pandas as pd\n
-            pd.set_option('display.max_columns', None)
-            """
-            
-            code2 = """from initial import *"""
-            code4 = """HandleFile.chunk_decide(f_name=)"""
-
-            code5 = """from data_collect import DfSetup as dfs"""
-            code6 = """dfs()"""
-            code7 = """# Train Dataset\n train_df=dfs.set_train_df()\n"""
-            code8 = """# Test Dataset\n test_df=dfs.set_test_df()\n"""
-
-            # Adding a Markdown Cell to the created Notebook
-            nb['cells'].append(nbf.v4.new_markdown_cell(text1))
-
-            # Adding another Markdown Cell to the created Notebook
-            nb['cells'].append(nbf.v4.new_markdown_cell(text2))
-
-            # Adding the Code Cell to the created Notebook
-            nb['cells'].append(nbf.v4.new_code_cell(code1))
-
-            # Adding another Markdown Cell to the created Notebook
-            nb['cells'].append(nbf.v4.new_markdown_cell(text3))
-
-            # Adding the code bits
-            nb['cells'].append(nbf.v4.new_code_cell(code1_1))
-            nb['cells'].append(nbf.v4.new_code_cell(code2))
-            nb['cells'].append(nbf.v4.new_code_cell(code4))
-            nb['cells'].append(nbf.v4.new_code_cell(code5))
-            nb['cells'].append(nbf.v4.new_code_cell(code6))
-            nb['cells'].append(nbf.v4.new_code_cell(code7))
-            nb['cells'].append(nbf.v4.new_code_cell(code8))
-
-            # Adding Markdown Cell
-            nb['cells'].append(nbf.v4.new_markdown_cell(text4))
-
-            # Finalizing the Schema
-            nbf.write(nb, 'Main.ipynb')
-
-            # Confirming the Notebook Creation
-            print('Notebook has been created successfully!!')
-
-            # Moving the created notebook the directory created
-            shutil.move('Main.ipynb', path_dir)
-
-        except:
-            print('IPYNB file was not created and moved to the working directory!!!')
-
-
-if __name__ == '__main__':
-    Envsetup(site=input('Please Enter the Site MH/AV/ZN/KG: '),
-             zip_fold_pres=input('Please Confirm the presence of zip folder or individual y/n: '),
-             custom_PS=input('Please Enter the Case specific Problem Statement: '),
-             custom_PM=input('Please Enter the Case specific Performance Metric: '))
+    def copy_ipnyb_templt(self, proj_type):
+        """
+        Copies case-specific templates into the project directories
+        """
+        templt_file = os.path.join(read_config(sec='Base_Directories', ky='ipnyb_templates'), EnvSetup.ipnyb_templt_dict[proj_type])
+        dst = os.path.join(EnvSetup.get_proj_par_dir(),'Main.ipynb')
+        shutil.copy(templt_file, dst)

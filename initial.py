@@ -254,7 +254,7 @@ class HandleFile:
                 if test_file:
                     test_ind = ind
 
-                samp_file = re.findall('.+sub.+'.lower(), (os.listdir()[ind]).lower()) # Sample file Index
+                samp_file = re.findall('.+submission'.lower(), (os.listdir()[ind]).lower()) # Sample file Index
                 if samp_file:
                     samp_file = ind
 
