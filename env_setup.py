@@ -121,7 +121,6 @@ class EnvSetup:
             
         return cr_files
     
-    # HAVING ISSUES
     def mov_data_files(self, files_in_dir):
         """
         Moves the downloaded data folder/files from the default foldrs into the project directory.
@@ -137,15 +136,18 @@ class EnvSetup:
             if moving_conf == 1:
                 for file in files_in_dir:
                     file_src = os.path.join(EnvSetup.get_data_fold(),file)
-                    file_dst = os.path.join(EnvSetup.proj_par_dir(),file)
                     shutil.move(file_src, EnvSetup.proj_par_dir())
 
             else:
-                fil_indxs = list(input("Please Enter the Indices of the files you want moved.: "))
-                for ind in sorted(fil_indxs, reverse=True):
+                fil_indxs = input("Please Enter the Indices of the files you want moved.: ")
+                fil_indxs_list = fil_indxs.split()
+        
+                for i in range(len(fil_indxs_list)):
+                    fil_indxs_list[i] = int(fil_indxs_list[i])
+
+                for ind in sorted(fil_indxs_list, reverse=True):
                     file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
-                    file_dst = os.path.join(EnvSetup.proj_par_dir(),files_in_dir[ind])
-                    shutil.move(file_src, file_dst)
+                    shutil.move(file_src, EnvSetup.proj_par_dir())
 
         except:
             print(f'Data Folder/File have not been moved into the directory.')

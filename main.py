@@ -65,8 +65,11 @@ if __name__ == "__main__":
     except AssertionError:
         print("Please Check for the data types for the variables associated with the assert statement")
 
+    except FileNotFoundError:
+        print("Please Check for the presence of the file in the directory.")
+
     except:
         print("BIG FAIL!!!!")
 
     else:
-        ...
+        print("Setting-up the project directory has been completed.")
