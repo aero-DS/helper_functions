@@ -1,9 +1,11 @@
 # Libraries
 import configparser
 import shutil
+from zipfile import ZipFile
 import dir_paths as dp
 import os
 import datetime
+import re
 
 # Supplement Functions
 def decs_afterline():
@@ -27,6 +29,9 @@ class EnvSetup:
     This class performs the following tasks:
         1. Checks for the presence of downloaded data files for the project.
         2. Creates the project specific directory.
+        3. Moves the data folders into the directory.
+        4. Copies the case-specific ipynb template into the directory.
+        5. Copies the python file into the directory which helps in adding these files into the directory path.
     """
 
     def __init__(self):
@@ -39,7 +44,8 @@ class EnvSetup:
     # Template Dictionary
     ipnyb_templt_dict = {
         'CV' : 'Computer_Vision_template.ipynb',
-        'Reg' : 'Regression_template.ipynb'
+        'SREG' : 'Regression_template.ipynb',
+        'SCL' : 'Classification_template.ipynb'
     }
     
     # Site Dictionary
@@ -108,7 +114,6 @@ class EnvSetup:
         """
         This function performs the following tasks:
             1. Checks the presence of the downloaded data files in the specified directory (based on the date the files were created.)
-            2. 
         """
         cr_files = []
     
@@ -123,31 +128,23 @@ class EnvSetup:
     
     def mov_data_files(self, files_in_dir):
         """
-        Moves the downloaded data folder/files from the default foldrs into the project directory.
+        Copies the downloaded data folder/files from the default foldrs into the project directory.
         """
         try:
             print('Indices of the files in the directory are:\n')
             for ind,f in enumerate(files_in_dir):
                 print(f'{ind} : {f}')
 
-            moving_conf = int(input("Do you want to move all the listed files into the project directory? 1/0: "))
-            assert moving_conf == 1 or moving_conf == 0, "Please Enter only from the provided Options"
+            fil_indxs = input("Please Enter the Indices of the files you want moved.: ")
+            fil_indxs_list = fil_indxs.split()
+    
+            for i in range(len(fil_indxs_list)):
+                fil_indxs_list[i] = int(fil_indxs_list[i])
 
-            if moving_conf == 1:
-                for file in files_in_dir:
-                    file_src = os.path.join(EnvSetup.get_data_fold(),file)
-                    shutil.move(file_src, EnvSetup.proj_par_dir())
-
-            else:
-                fil_indxs = input("Please Enter the Indices of the files you want moved.: ")
-                fil_indxs_list = fil_indxs.split()
-        
-                for i in range(len(fil_indxs_list)):
-                    fil_indxs_list[i] = int(fil_indxs_list[i])
-
-                for ind in sorted(fil_indxs_list, reverse=True):
-                    file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
-                    shutil.move(file_src, EnvSetup.proj_par_dir())
+            for ind in sorted(fil_indxs_list, reverse=True):
+                file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
+                file_dst = EnvSetup.get_proj_par_dir()
+                shutil.move(file_src, file_dst)
 
         except:
             print(f'Data Folder/File have not been moved into the directory.')
@@ -180,3 +177,50 @@ class EnvSetup:
         templt_file = os.path.join(read_config(sec='Base_Directories', ky='ipnyb_templates'), EnvSetup.ipnyb_templt_dict[proj_type])
         dst = os.path.join(EnvSetup.get_proj_par_dir(),'Main.ipynb')
         shutil.copy(templt_file, dst)
+
+
+    def mov_zimovout_zip_contp_cont(self, projct_dir):
+        """
+        This function carries out the following tasks:
+    
+        1. Unzips the zipped data folder.
+        2. If required, Moves the files from the un-zipped folder into the project directory.
+        3. If required, Deletes the now empty unzipped folder.
+    
+        Inputs:
+            proj_dir: The path for project directory.
+        """
+        before_unzpp_dirs = os.listdir()
+    
+        for ind, f in enumerate(os.listdir(proj_dir)):
+            zfs = re.findall("zip\Z",f)
+            if len(zfs)!=0:
+                fold_ind = ind
+                # Unzip and Display the contents of the zip folder
+                z = ZipFile(os.listdir(projct_dir)[fold_ind], 'r')
+                z.extractall()
+                z.close()
+        
+        aftr_unzpp_dirs = os.listdir()
+        
+        new_dirs = list(set(aftr_unzpp_dirs).difference(set(before_unzpp_dirs)))
+        
+        # To check if the contents of the zipped folder were extracted out of the folder
+        print(new_dirs)
+        
+        procd_further = int(input("Do you want to proceed dealing with the unzipped folder? 1/0: "))
+        
+        if procd_further == 1:
+            for new_dir in new_dirs:
+                for fils in new_dir:
+                    fils_org = os.path.join(projct_dir,new_dir,fils)
+                    fils_dst = os.listdir(projct_dir)
+                    shutil.move(fils_org,fils_dst)
+            
+    
+    def show_site_directories(self, site):
+        """
+        Lists out the contents of the site directory.
+        """
+        cases = os.listdir(os.path.join(read_config(sec='Site_Directories', ky=site)))
+        print(cases)
