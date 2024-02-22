@@ -135,16 +135,28 @@ class EnvSetup:
             for ind,f in enumerate(files_in_dir):
                 print(f'{ind} : {f}')
 
-            fil_indxs = input("Please Enter the Indices of the files you want moved.: ")
-            fil_indxs_list = fil_indxs.split()
-    
-            for i in range(len(fil_indxs_list)):
-                fil_indxs_list[i] = int(fil_indxs_list[i])
+            mov_all_files = int(input("Do you want to move all the files into the Project Directory? 1/0: "))
+            assert mov_all_files == 1 or mov_all_files == 0, "Takes only 1/0."
 
-            for ind in sorted(fil_indxs_list, reverse=True):
-                file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
-                file_dst = EnvSetup.get_proj_par_dir()
-                shutil.move(file_src, file_dst)
+            if mov_all_files == 0:
+
+                fil_indxs = input("Please Enter the Indices of the files you want moved.: ")
+                fil_indxs_list = fil_indxs.split()
+        
+                for i in range(len(fil_indxs_list)):
+                    fil_indxs_list[i] = int(fil_indxs_list[i])
+
+                for ind in sorted(fil_indxs_list, reverse=True):
+                    file_src = os.path.join(EnvSetup.get_data_fold(),files_in_dir[ind])
+                    file_dst = EnvSetup.get_proj_par_dir()
+                    shutil.move(file_src, file_dst)
+
+            else:
+
+                for file in files_in_dir:
+                    file_src = os.path.join(EnvSetup.get_data_fold(), file)
+                    file_dst = EnvSetup.get_proj_par_dir()
+                    shutil.move(file_src, file_dst)
 
         except:
             print(f'Data Folder/File have not been moved into the directory.')
@@ -179,7 +191,7 @@ class EnvSetup:
         shutil.copy(templt_file, dst)
 
 
-    def mov_zimovout_zip_contp_cont(self, projct_dir):
+    def mov_zimovout_zip_contp_cont(self):
         """
         This function carries out the following tasks:
     
@@ -190,18 +202,18 @@ class EnvSetup:
         Inputs:
             proj_dir: The path for project directory.
         """
-        before_unzpp_dirs = os.listdir()
+        before_unzpp_dirs = os.listdir(EnvSetup.get_proj_par_dir())
     
-        for ind, f in enumerate(os.listdir(proj_dir)):
+        for ind, f in enumerate(os.listdir(EnvSetup.get_proj_par_dir())):
             zfs = re.findall("zip\Z",f)
             if len(zfs)!=0:
                 fold_ind = ind
                 # Unzip and Display the contents of the zip folder
-                z = ZipFile(os.listdir(projct_dir)[fold_ind], 'r')
+                z = ZipFile(os.listdir(EnvSetup.get_proj_par_dir())[fold_ind], 'r')
                 z.extractall()
                 z.close()
         
-        aftr_unzpp_dirs = os.listdir()
+        aftr_unzpp_dirs = os.listdir(EnvSetup.get_proj_par_dir())
         
         new_dirs = list(set(aftr_unzpp_dirs).difference(set(before_unzpp_dirs)))
         
@@ -212,9 +224,9 @@ class EnvSetup:
         
         if procd_further == 1:
             for new_dir in new_dirs:
-                for fils in new_dir:
-                    fils_org = os.path.join(projct_dir,new_dir,fils)
-                    fils_dst = os.listdir(projct_dir)
+                for fils in new_dir(EnvSetup.get_proj_par_dir())
+                    fils_org = os.path.join(EnvSetup.get_proj_par_dir(),new_dir,fils)
+                    fils_dst = os.listdir(EnvSetup.get_proj_par_dir())
                     shutil.move(fils_org,fils_dst)
             
     

@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
         # TO BE REFACTORED
         if files_fnd == 0:
-            pass
+            print("This part hasn't been decided yet.")
 
         else:
             decs_afterline()
@@ -76,18 +76,26 @@ if __name__ == "__main__":
 
         # Unzipping the Data Folder and moving the contents of the file if required
         decs_afterline()
-        unzip_file = int(input("Do you have to unzip the data folder? 1/0: "))
+        unzip_file = int(input("Do you want to unzip the data folder? 1/0: "))
         if unzip_file == 1:
-            proj.mov_zimovout_zip_contp_cont(projct_dir=proj.get_proj_par_dir())
+            proj.mov_zimovout_zip_contp_cont()
     
     except AssertionError:
+        decs_afterline()
         print("Please Check for the data types for the variables associated with the assert statement")
 
     except FileNotFoundError:
+        decs_afterline()
         print("Please Check for the presence of the file in the directory.")
 
+    except NameError:
+        decs_afterline()
+        print("Please check your imports.")
+
     except:
+        decs_afterline()
         print("BIG FAIL!!!!")
 
     else:
+        decs_afterline()
         print("Setting-up the project directory has been completed.")
